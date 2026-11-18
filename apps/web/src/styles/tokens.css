@@ -1,0 +1,81 @@
+/*
+ * Design tokens do Bancada.
+ *
+ * PALETA PROVISÓRIA E NEUTRA: a paleta de cores ainda NÃO foi aprovada.
+ * Estes tons de cinza só existem para a interface funcionar. Quando a paleta
+ * for escolhida, troque os valores abaixo; nenhum componente usa cor fixa.
+ */
+:root {
+  color-scheme: light;
+
+  /* Superfícies */
+  --color-page: #f4f4f4;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f7f7f6;
+  --color-surface-active: #ececeb;
+
+  /* Texto */
+  --color-ink: #171717;
+  --color-muted: #5f5f5f;
+  --color-quiet: #767676;
+  --color-on-primary: #ffffff;
+
+  /* Linhas */
+  --color-line: #dedede;
+  --color-line-strong: #c8c8c8;
+
+  /* Ação principal (provisória) */
+  --color-primary: #202020;
+  --color-primary-hover: #3a3a3a;
+
+  /* Estados — provisórios, também neutros; o texto sempre acompanha a cor */
+  --color-danger: #9d3333;
+  --color-danger-soft: #f7eaea;
+  --color-success: #2f5d3a;
+  --color-focus: #6b6b6b;
+
+  /* Marcador de status (bolinha). Cada status ganhará cor própria com a paleta. */
+  --status-dot-default: #8a8a8a;
+  --status-dot-current: #171717;
+
+  /* Tipografia */
+  --font-ui: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'Inter Variable', sans-serif;
+
+  --text-xs: 0.75rem;   /* 12px — menor tamanho permitido */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-md: 0.875rem;  /* 14px */
+  --text-lg: 1rem;      /* 16px */
+  --text-xl: 1.25rem;   /* 20px */
+  --text-2xl: 1.625rem; /* 26px */
+  --text-3xl: 2rem;     /* 32px */
+
+  /* Espaçamento e forma (mais espaço e cantos mais arredondados, como aprovado) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  --control-height: 44px;
+  --sidebar-width: 248px;
+  --logo-size: 64px;
+
+  --shadow-dialog: 0 20px 70px rgb(0 0 0 / 0.14);
+}
+
+@media (max-width: 820px) {
+  :root {
+    --sidebar-width: 72px;
+    --logo-size: 52px;
+  }
+}

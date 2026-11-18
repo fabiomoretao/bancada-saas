@@ -1,0 +1,114 @@
+.timeline {
+  display: flex;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-top: 20px;
+  text-align: center;
+  color: var(--color-quiet);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
+
+/* Marcador */
+.step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
+  border: 1.5px solid var(--color-line-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+/* Conector */
+.step::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: calc(50% + 9px);
+  width: calc(100% - 18px);
+  height: 1.5px;
+  background: var(--color-line);
+}
+.step:last-child::after {
+  display: none;
+}
+
+.step[data-state='done'],
+.step[data-state='current'] {
+  color: var(--color-ink);
+}
+.step[data-state='done']::before {
+  background: var(--status-dot-default);
+  border-color: var(--status-dot-default);
+}
+.step[data-state='done']::after {
+  background: var(--status-dot-default);
+}
+.step[data-state='current'] {
+  font-weight: 600;
+}
+.step[data-state='current']::before {
+  background: var(--status-dot-current);
+  border-color: var(--status-dot-current);
+  box-shadow:
+    0 0 0 3px var(--color-surface),
+    0 0 0 4.5px var(--status-dot-default);
+}
+
+.label,
+.when {
+  display: block;
+}
+.when {
+  margin-top: 2px;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.closed {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+  font-size: var(--text-sm);
+}
+
+/* Em telas estreitas a linha do tempo fica vertical para os rótulos não se sobreporem. */
+@media (max-width: 600px) {
+  .timeline {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .step {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: 0 0 0 24px;
+    text-align: left;
+  }
+  .step::before {
+    top: 3px;
+    left: 0;
+    transform: none;
+  }
+  .step::after {
+    top: 17px;
+    left: 5px;
+    width: 1.5px;
+    height: calc(100% - 6px);
+  }
+  .when {
+    margin-top: 0;
+  }
+}

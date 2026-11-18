@@ -1,0 +1,56 @@
+.dialog {
+  width: min(460px, calc(100% - 32px));
+  padding: var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-dialog);
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+.title {
+  font-size: var(--text-xl);
+}
+.body {
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.body p {
+  margin: 0 0 var(--space-2);
+}
+.body strong {
+  color: var(--color-ink);
+}
+
+.error {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+}
+.danger:hover {
+  background: var(--color-danger);
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+}

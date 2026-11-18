@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Banco local
+*.db
+*.db-journal
+apps/api/src/generated/
+
+.DS_Store
+Thumbs.db
