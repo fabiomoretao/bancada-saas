@@ -190,4 +190,4 @@ As migrações usam só tipos portáveis (`text` e `integer`) e a conexão já r
 - **OpenAI Codex:** ideação, fluxo, especificação e protótipo de telas.
 - **Claude (Anthropic):** stack e arquitetura, programação (API, banco, telas), testes, solução de problemas de instalação, documentação e propostas de paleta.
 
-A equipe aprovou cada decisão, testou o sistema e revisou o código. Detalhes e exemplos concretos no PDF, seção 8.
+A equipe testou o sistema e revisou o código, inclusive as partes geradas com IA. Detalhes e exemplos concretos no PDF, seção 8.
