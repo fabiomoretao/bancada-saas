@@ -3,6 +3,7 @@ import { ROLE_LABELS } from '@bancada/shared';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useLogout, useSession } from '../api/hooks';
 import logo from '../assets/logo-bancada.svg';
+import { AppSplash } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import styles from './AppShell.module.css';
 
@@ -35,7 +36,7 @@ export function AppShell() {
   const session = useSession();
   const logout = useLogout();
 
-  if (session.isPending) return <StateMessage kind="loading" title="Carregando…" />;
+  if (session.isPending) return <AppSplash />;
   if (session.isError) {
     return (
       <StateMessage kind="error" title="Não foi possível falar com o servidor">

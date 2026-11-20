@@ -6,6 +6,7 @@ import { useAddNote, useRegeneratePublicLink, useWorkOrder } from '../api/hooks'
 import { CopyLinkButton } from '../components/CopyLinkButton';
 import { Dialog } from '../components/Dialog';
 import { EstimateBox, versionLabel } from '../components/EstimateBox';
+import { DetailSkeleton } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
 import { StatusTimeline } from '../components/StatusTimeline';
@@ -24,7 +25,7 @@ export function WorkOrderDetail({ id }: { id: string }) {
   const location = useLocation();
   const justCreated = (location.state as CreatedState | null)?.created === true;
 
-  if (isPending) return <StateMessage kind="loading" title="Carregando ordem…" />;
+  if (isPending) return <DetailSkeleton label="Carregando ordem…" />;
   if (isError) {
     return (
       <StateMessage

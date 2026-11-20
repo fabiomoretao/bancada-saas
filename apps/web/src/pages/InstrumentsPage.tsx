@@ -2,6 +2,7 @@ import { MagnifyingGlassIcon, PlusIcon } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useInstrument, useInstruments } from '../api/hooks';
+import { DetailSkeleton, ListSkeleton } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
 import { formatDate, instrumentTitle, relativeDay } from '../lib/format';
@@ -48,7 +49,7 @@ export function InstrumentsPage() {
           </label>
 
           {list.isPending ? (
-            <StateMessage kind="loading" title="Carregando instrumentos…" />
+            <ListSkeleton label="Carregando instrumentos…" variant="people" />
           ) : list.isError ? (
             <StateMessage kind="error" title="Não foi possível carregar os instrumentos">
               {list.error.message}
@@ -93,7 +94,7 @@ export function InstrumentsPage() {
 
 function InstrumentDetail({ id }: { id: string }) {
   const { data, isPending, isError, error } = useInstrument(id);
-  if (isPending) return <StateMessage kind="loading" title="Carregando instrumento…" />;
+  if (isPending) return <DetailSkeleton label="Carregando instrumento…" />;
   if (isError) return <StateMessage kind="error" title="Não foi possível abrir este instrumento">{error.message}</StateMessage>;
 
   return (

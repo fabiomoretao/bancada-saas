@@ -22,6 +22,7 @@ import { Link } from 'react-router-dom';
 import { useChangePassword, useChangePlan, useCreateMember, usePlan, useSession, useTeam, useUpdateMember } from '../api/hooks';
 import { Dialog } from '../components/Dialog';
 import { PlanPicker, planPriceLabel } from '../components/PlanPicker';
+import { TableSkeleton } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import { useToast } from '../components/Toast';
 import { formatDate } from '../lib/format';
@@ -69,7 +70,7 @@ export function TeamPage() {
           Acessos
         </h2>
         {team.isPending ? (
-          <StateMessage kind="loading" title="Carregando equipe…" />
+          <TableSkeleton label="Carregando equipe…" />
         ) : team.isError ? (
           <StateMessage kind="error" title="Não foi possível carregar a equipe">
             {team.error.message}

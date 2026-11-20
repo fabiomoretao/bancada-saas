@@ -19,6 +19,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useSession } from '../api/hooks';
 import logo from '../assets/logo-bancada.svg';
 import { CycleToggle } from '../components/PlanPicker';
+import BlurText from '../components/reactbits/BlurText';
+import CountUp from '../components/reactbits/CountUp';
+import SpotlightCard from '../components/reactbits/SpotlightCard';
 import styles from './PlansPage.module.css';
 
 /** Página pública de planos: Solo (1 acesso) e Equipe (até 3), mensal ou anual. */
@@ -62,7 +65,16 @@ export function PlansPage() {
       <main className={styles.main}>
         <div className={styles.intro}>
           <div className="eyebrow">Planos</div>
-          <h1 className={styles.title}>Um preço simples para a sua oficina</h1>
+          <BlurText
+            as="h1"
+            className={styles.title}
+            text="Um preço simples para a sua oficina"
+            trigger="load"
+            delay={70}
+            stepDuration={0.32}
+            blur={8}
+            distance={16}
+          />
           <p className={styles.subtitle}>Os dois planos têm todas as funções do Bancada. Muda só quantas pessoas acessam.</p>
           <CycleToggle value={cycle} onChange={setCycle} />
         </div>
@@ -87,17 +99,48 @@ function PlanCard({ id, cycle, signedIn }: { id: PlanId; cycle: BillingCycle; si
   const plan = PLANS[id];
   const titleId = `plano-${id}`;
   const signupPath = `/criar-conta?plano=${PLAN_SLUGS[id]}&ciclo=${CYCLE_SLUGS[cycle]}`;
+  const price = priceCents(id, cycle);
 
   return (
-    <section className={styles.card} aria-labelledby={titleId}>
+    // Luz suave que segue o mouse (React Bits SpotlightCard), na cor âmbar da paleta.
+    <SpotlightCard
+      role="region"
+      aria-labelledby={titleId}
+      className={styles.card}
+      theme="light"
+      spotlightColor="#C8873A"
+      intensity={0.5}
+      spotlightSize={300}
+      borderGlow={0.9}
+      style={
+        {
+          '--spotlight-card-surface': 'var(--color-surface)',
+          '--spotlight-card-border': 'var(--color-line)',
+          '--spotlight-card-shadow': 'none',
+        } as React.CSSProperties
+      }
+    >
       <h2 id={titleId} className={styles.cardTitle}>
         {plan.name}
       </h2>
       <p className={styles.tagline}>{plan.tagline}</p>
 
       <p className={styles.price}>
-        <strong>{formatPlanPrice(priceCents(id, cycle))}</strong>
-        <span>/{cycle === 'monthly' ? 'mês' : 'ano'}</span>
+        {/* Ao trocar mensal/anual, os dígitos rolam até o novo preço (React Bits CountUp). */}
+        <strong aria-hidden="true">
+          <CountUp
+            from={price / 100}
+            to={price / 100}
+            mode="roll"
+            duration={0.7}
+            trigger="load"
+            prefix="R$ "
+            decimals={price % 100 === 0 ? 0 : 2}
+            decimalSeparator=","
+          />
+        </strong>
+        <span className="visually-hidden">{formatPlanPrice(price)}</span>
+        <span className={styles.period}>/{cycle === 'monthly' ? 'mês' : 'ano'}</span>
       </p>
       <p className={styles.priceNote}>
         {cycle === 'monthly'
@@ -137,6 +180,6 @@ function PlanCard({ id, cycle, signedIn }: { id: PlanId; cycle: BillingCycle; si
           Começar com o {plan.name}
         </Link>
       )}
-    </section>
+    </SpotlightCard>
   );
 }

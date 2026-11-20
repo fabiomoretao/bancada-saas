@@ -7,6 +7,8 @@ import { useCustomerDecision, usePublicOrder } from '../api/hooks';
 import { Dialog } from '../components/Dialog';
 import logo from '../assets/logo-bancada.svg';
 import { EstimateBox, versionLabel } from '../components/EstimateBox';
+import { PublicOrderSkeleton } from '../components/Loading';
+import BlurText from '../components/reactbits/BlurText';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
 import { formatDate, formatDateTime, instrumentSubtitle } from '../lib/format';
@@ -44,7 +46,7 @@ export function PublicOrderPage() {
       </header>
 
       {isPending ? (
-        <StateMessage kind="loading" title="Carregando sua ordem…" />
+        <PublicOrderSkeleton />
       ) : isError ? (
         <StateMessage kind="error" title="Link indisponível">
           {error.message} Se precisar, peça um link novo à oficina.
@@ -63,7 +65,18 @@ function PublicOrder({ order, token }: { order: PublicWorkOrderDTO; token: strin
     <div className={styles.layout}>
       <section>
         <div className="eyebrow">Ordem de serviço · {order.code}</div>
-        <h1 className={styles.headline}>{CUSTOMER_HEADLINE[order.status]}</h1>
+        {/* O título surge palavra a palavra (React Bits BlurText) e repete quando o status muda. */}
+        <BlurText
+          key={order.status}
+          as="h1"
+          className={styles.headline}
+          text={CUSTOMER_HEADLINE[order.status]}
+          trigger="load"
+          delay={70}
+          stepDuration={0.3}
+          blur={6}
+          distance={14}
+        />
 
         <div className={styles.meta}>
           <div>

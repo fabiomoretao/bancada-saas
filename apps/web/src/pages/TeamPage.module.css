@@ -134,6 +134,7 @@
 }
 .meterBar span {
   display: block;
+  transition: width 0.5s ease;
   height: 100%;
   border-radius: inherit;
   background: var(--color-primary);

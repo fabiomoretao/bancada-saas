@@ -1,0 +1,246 @@
+/* ---------- Base ---------- */
+
+/* Só aparece depois de 150 ms: respostas rápidas não fazem a tela piscar. */
+.busy,
+.splash {
+  animation: appear 0.2s ease 0.15s both;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bone {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-active) 0%,
+    var(--color-surface-active) 40%,
+    #f7f1e9 50%,
+    var(--color-surface-active) 60%,
+    var(--color-surface-active) 100%
+  );
+  background-size: 250% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+.rowMain {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* ---------- Abertura ---------- */
+.splash {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  background: var(--color-page);
+}
+.splashLogo {
+  width: 64px;
+  height: 64px;
+  animation: breathe 1.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+.splashName {
+  font: 600 var(--text-xl) / 1 var(--font-display);
+  color: var(--color-ink);
+}
+.splashBar {
+  position: relative;
+  width: 120px;
+  height: 3px;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-active);
+}
+.splashBar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  animation: slide 1.1s ease-in-out infinite;
+}
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(260%);
+  }
+}
+
+/* ---------- Listas ---------- */
+.orderRow,
+.personRow,
+.tableRow {
+  display: grid;
+  align-items: center;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+}
+.orderRow {
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 160px) 64px;
+  min-height: 78px;
+  padding: var(--space-3) var(--space-5);
+}
+.personRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 68px;
+  padding: var(--space-3) var(--space-5);
+}
+.tableRow {
+  grid-template-columns: minmax(0, 2fr) 1fr 1fr 1fr;
+  min-height: 62px;
+  padding: var(--space-3);
+}
+
+/* ---------- Detalhe ---------- */
+.detail {
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+.detailHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.detailHead > .rowMain {
+  flex: 1;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+.panel {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.timelineStep {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Orçamento ---------- */
+.estimate {
+  display: grid;
+  gap: var(--space-6);
+}
+.estimateGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-5);
+  align-items: start;
+}
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+.itemRow {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  gap: var(--space-2);
+}
+
+/* ---------- Link do cliente ---------- */
+.public {
+  display: grid;
+  gap: var(--space-6);
+}
+.publicSteps {
+  display: grid;
+  gap: var(--space-4);
+  padding-left: var(--space-1);
+}
+.publicStep {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+@media (max-width: 760px) {
+  .detail {
+    padding: var(--space-5) var(--space-4);
+  }
+  .grid2,
+  .estimateGrid {
+    grid-template-columns: 1fr;
+  }
+  .orderRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: var(--space-4);
+  }
+  .orderRow > :last-child {
+    display: none;
+  }
+  .tableRow {
+    grid-template-columns: 1fr;
+  }
+  .tableRow > :not(:first-child) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bone,
+  .splashLogo,
+  .splashBar span {
+    animation: none;
+  }
+  .bone {
+    background: var(--color-surface-active);
+  }
+  .splashBar span {
+    left: 30%;
+  }
+}

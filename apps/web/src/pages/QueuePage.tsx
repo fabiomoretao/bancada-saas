@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDebounced } from '../lib/useDebounced';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useWorkOrders } from '../api/hooks';
+import { ListSkeleton } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
 import { instrumentTitle, relativeDay } from '../lib/format';
@@ -85,7 +86,7 @@ export function QueuePage() {
           </div>
 
           {list.isPending ? (
-            <StateMessage kind="loading" title="Carregando ordens…" />
+            <ListSkeleton label="Carregando ordens…" />
           ) : list.isError ? (
             <StateMessage
               kind="error"

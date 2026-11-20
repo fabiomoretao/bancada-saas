@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useCustomer, useCustomers } from '../api/hooks';
 import { CustomerForm } from '../components/CustomerForm';
+import { DetailSkeleton, ListSkeleton } from '../components/Loading';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
 import { useToast } from '../components/Toast';
@@ -54,7 +55,7 @@ export function CustomersPage({ creating = false }: { creating?: boolean }) {
           </label>
 
           {list.isPending ? (
-            <StateMessage kind="loading" title="Carregando clientes…" />
+            <ListSkeleton label="Carregando clientes…" variant="people" />
           ) : list.isError ? (
             <StateMessage kind="error" title="Não foi possível carregar os clientes">
               {list.error.message}
@@ -118,7 +119,7 @@ export function CustomersPage({ creating = false }: { creating?: boolean }) {
 
 function CustomerDetail({ id }: { id: string }) {
   const { data, isPending, isError, error } = useCustomer(id);
-  if (isPending) return <StateMessage kind="loading" title="Carregando cliente…" />;
+  if (isPending) return <DetailSkeleton label="Carregando cliente…" />;
   if (isError) return <StateMessage kind="error" title="Não foi possível abrir este cliente">{error.message}</StateMessage>;
   return <CustomerDetailContent key={data.id} customer={data} />;
 }

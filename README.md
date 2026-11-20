@@ -45,7 +45,7 @@ Abra **http://localhost:5173**. A tela de entrar é a de um SaaS em produção: 
 
 Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**. A oficina de demonstração está no plano **Equipe** (2 de 3 acessos em uso).
 
-**Atualizando de uma versão anterior:** rode `npm run db:reset` uma vez (com o `npm run dev` parado). Ele acrescenta a senha da demonstração ao `.env`, recria o banco com as contas e gera o `ACESSO-LOCAL.md`. Se a tela de entrar recusa o login, é sinal de que o banco é de antes das contas: o `db:reset` resolve.
+**Atualizando de uma versão anterior:** rode `npm install` (há dependência nova: `motion`) e `npm run db:reset` uma vez (com o `npm run dev` parado). Ele acrescenta a senha da demonstração ao `.env`, recria o banco com as contas e gera o `ACESSO-LOCAL.md`. Se a tela de entrar recusa o login, é sinal de que o banco é de antes das contas: o `db:reset` resolve.
 
 **Em produção:** configure o `.env` sem `DEMO_PASSWORD`, rode só `npm run db:migrate` e cada oficina cria a própria conta pela tela **Criar conta**.
 
@@ -74,6 +74,14 @@ O campo `allowScripts` no `package.json` raiz autoriza os scripts de instalaçã
 | Compartilhado | `packages/shared`: esquemas Zod, máquina de estados, tipos de resposta, dinheiro em centavos |
 | Testes | Vitest + Supertest |
 | Interface | Inter (texto e preços), Bricolage Grotesque (títulos), ícones Phosphor |
+| Animações | [React Bits](https://reactbits.dev) (BlurText, CountUp, SpotlightCard) sobre a biblioteca `motion`, e telas de carregamento no formato de cada página |
+
+### Animações e carregamento
+
+- **Telas de carregamento:** abertura com o logo enquanto o sistema confere o login, e esqueletos com o formato de cada tela (fila, detalhe da OS, orçamento, clientes, instrumentos, equipe e link do cliente). Só aparecem se a resposta demorar mais de 150 ms, para não piscar.
+- **React Bits**, só onde ajuda a leitura: o título da página de planos e o status no link do cliente surgem com **BlurText** (e o do cliente se repete quando o status muda); os preços dos planos rolam até o novo valor ao trocar mensal/anual e o total do orçamento corre até o novo valor com **CountUp**; os cartões de plano ganham uma luz âmbar que segue o mouse com **SpotlightCard**.
+- Telas de trabalho diário (fila, formulários) não têm animação de entrada, para não atrasar quem usa o sistema o dia todo. Com "reduzir movimento" ativado no sistema operacional, as animações são desligadas ou reduzidas.
+- Os componentes ficam em `apps/web/src/components/reactbits/`, com a licença do React Bits (MIT + Commons Clause: uso livre dentro de uma aplicação, sem revender os componentes).
 
 ## Estrutura
 
@@ -103,7 +111,8 @@ bancada-saas/
 ├─ apps/web/src/
 │  ├─ pages/           Planos, Entrar, Criar conta, Fila + detalhe, Nova ordem, Orçamento,
 │  │                   Clientes, Instrumentos, Equipe (com plano), Link do cliente
-│  ├─ components/      status, linha do tempo, orçamento, toasts…
+│  ├─ components/      status, linha do tempo, orçamento, toasts, telas de carregamento…
+│  │  └─ reactbits/    animações do React Bits (BlurText, CountUp, SpotlightCard)
 │  ├─ layout/          shell da oficina (navegação lateral)
 │  ├─ api/             cliente HTTP e hooks do TanStack Query
 │  └─ styles/tokens.css  design tokens (paleta Nogueira)

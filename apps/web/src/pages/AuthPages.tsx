@@ -16,6 +16,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { useLogin, useSession, useSignup } from '../api/hooks';
 import logo from '../assets/logo-bancada.svg';
+import { AppSplash } from '../components/Loading';
 import { PlanPicker, planPriceLabel } from '../components/PlanPicker';
 import { StateMessage } from '../components/StateMessage';
 import styles from './AuthPages.module.css';
@@ -107,7 +108,7 @@ function TextField<T extends FieldValues>({
 function GuestOnly({ children }: { children: ReactNode }) {
   const session = useSession();
   const returnTo = useReturnTo();
-  if (session.isPending) return <StateMessage kind="loading" title="Carregando…" />;
+  if (session.isPending) return <AppSplash />;
   if (session.data) return <Navigate to={returnTo} replace />;
   return <>{children}</>;
 }

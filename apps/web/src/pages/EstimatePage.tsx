@@ -16,6 +16,8 @@ import { ApiError } from '../api/client';
 import { useDiscardDraft, usePublishEstimate, useSaveDraft, useWorkOrder } from '../api/hooks';
 import { Dialog } from '../components/Dialog';
 import { versionLabel } from '../components/EstimateBox';
+import { EstimateSkeleton } from '../components/Loading';
+import CountUp from '../components/reactbits/CountUp';
 import { StateMessage } from '../components/StateMessage';
 import { useToast } from '../components/Toast';
 import { instrumentTitle } from '../lib/format';
@@ -88,7 +90,7 @@ export function EstimatePage() {
   const { id = '' } = useParams();
   const { data: order, isPending, isError, error } = useWorkOrder(id);
 
-  if (isPending) return <StateMessage kind="loading" title="Carregando ordem…" />;
+  if (isPending) return <EstimateSkeleton />;
   if (isError) return <StateMessage kind="error" title="Não foi possível abrir esta ordem">{error.message}</StateMessage>;
 
   if (!canPublishEstimate(order.status)) {
@@ -350,8 +352,23 @@ function EstimateForm({ order }: { order: WorkOrderDetailDTO }) {
             <h2 id="total-titulo" className={styles.cardTitle}>
               Total estimado
             </h2>
-            <p className={styles.total} aria-live="polite">
-              {formatCents(total)}
+            <p className={styles.total}>
+              {/* O número corre até o novo total (React Bits CountUp); o leitor de tela ouve só o valor final. */}
+              <span aria-hidden="true">
+                <CountUp
+                  to={total / 100}
+                  from={0}
+                  duration={0.45}
+                  trigger="load"
+                  prefix="R$ "
+                  decimals={2}
+                  decimalSeparator=","
+                  separator="."
+                />
+              </span>
+              <span className="visually-hidden" aria-live="polite">
+                {formatCents(total)}
+              </span>
             </p>
             <p className={styles.cardHint}>O valor final é recalculado pelo servidor a partir dos itens.</p>
 
