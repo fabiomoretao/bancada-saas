@@ -5,7 +5,7 @@ import { createDb } from '../src/db/client';
 import { createMigrator, migrateToLatest } from '../src/db/migrator';
 import { setupTestApp } from './helpers';
 
-/** Planos Solo (1 acesso) e Equipe (até 3): valores, cadastro, limite e troca. */
+/** Planos Solo (1 acesso) e Equipe (até 5): valores, cadastro, limite e troca. */
 
 type Ctx = Awaited<ReturnType<typeof setupTestApp>>;
 let ctx: Ctx;
@@ -39,9 +39,9 @@ async function signup(body: Record<string, unknown>) {
 }
 
 describe('tabela de preços', () => {
-  it('Solo: R$ 39,90/mês ou R$ 399/ano, 1 acesso; Equipe: R$ 69,90/mês ou R$ 699/ano, até 3', () => {
+  it('Solo: R$ 39,90/mês ou R$ 399/ano, 1 acesso; Equipe: R$ 69,90/mês ou R$ 699/ano, até 5', () => {
     expect(PLANS.solo).toMatchObject({ maxUsers: 1, monthlyCents: 3990, yearlyCents: 39900 });
-    expect(PLANS.team).toMatchObject({ maxUsers: 3, monthlyCents: 6990, yearlyCents: 69900 });
+    expect(PLANS.team).toMatchObject({ maxUsers: 5, monthlyCents: 6990, yearlyCents: 69900 });
     expect(formatPlanPrice(priceCents('solo', 'monthly'))).toBe('R$ 39,90');
     expect(formatPlanPrice(priceCents('team', 'yearly'))).toBe('R$ 699');
     // O anual equivale a pagar 10 mensalidades (2 meses de economia).
@@ -61,7 +61,7 @@ describe('plano no cadastro da oficina', () => {
   it('grava o plano e o ciclo escolhidos', async () => {
     const { agent } = await signup({ plan: 'team', billingCycle: 'yearly' });
     const plan = (await agent.get('/api/workshop/plan')).body as WorkshopPlanDTO;
-    expect(plan).toEqual({ plan: 'team', billingCycle: 'yearly', maxUsers: 3, activeUsers: 1 });
+    expect(plan).toEqual({ plan: 'team', billingCycle: 'yearly', maxUsers: 5, activeUsers: 1 });
   });
 
   it('plano desconhecido é recusado', async () => {
@@ -80,18 +80,21 @@ describe('limite de acessos', () => {
     expect(res.body.error.message).toMatch(/plano Equipe/);
   });
 
-  it('Equipe: aceita até 3 acessos ativos; o quarto é recusado', async () => {
-    // A oficina demo está no Equipe com 2 pessoas.
-    expect((await ctx.agent.post('/api/team').send(newMember())).status).toBe(201);
-    const fourth = await ctx.agent.post('/api/team').send(newMember());
-    expect(fourth.status).toBe(409);
-    expect(fourth.body.error.code).toBe('plan_limit');
+  it('Equipe: aceita até 5 acessos ativos; o sexto é recusado', async () => {
+    // A oficina demo está no Equipe com 2 pessoas: cabem mais 3.
+    for (let i = 0; i < 3; i++) expect((await ctx.agent.post('/api/team').send(newMember())).status).toBe(201);
+    const sixth = await ctx.agent.post('/api/team').send(newMember());
+    expect(sixth.status).toBe(409);
+    expect(sixth.body.error.code).toBe('plan_limit');
+    expect(sixth.body.error.message).toMatch(/até 5 acessos/);
     const me = (await ctx.agent.get('/api/auth/me')).body as SessionDTO;
-    expect(me.workshop.activeUsers).toBe(3);
+    expect(me.workshop).toMatchObject({ maxUsers: 5, activeUsers: 5 });
   });
 
   it('desativar alguém libera a vaga; reativar com o plano cheio é recusado', async () => {
+    // Completa os 5 acessos do Equipe (2 da demo + 3 novos).
     const third = (await ctx.agent.post('/api/team').send(newMember())).body as { id: string };
+    for (let i = 0; i < 2; i++) expect((await ctx.agent.post('/api/team').send(newMember())).status).toBe(201);
     const team = (await ctx.agent.get('/api/team')).body.items as Array<{ id: string; email: string }>;
     const tecnico = team.find((u) => u.email === 'tecnico@bancada.demo')!;
 
@@ -120,7 +123,7 @@ describe('troca de plano', () => {
     const { agent } = await signup({ plan: 'solo' });
     const res = await agent.put('/api/workshop/plan').send({ plan: 'team', billingCycle: 'yearly' });
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ plan: 'team', billingCycle: 'yearly', maxUsers: 3 });
+    expect(res.body).toMatchObject({ plan: 'team', billingCycle: 'yearly', maxUsers: 5 });
     expect((await agent.post('/api/team').send(newMember())).status).toBe(201);
   });
 

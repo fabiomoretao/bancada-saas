@@ -24,7 +24,7 @@ import CountUp from '../components/reactbits/CountUp';
 import SpotlightCard from '../components/reactbits/SpotlightCard';
 import styles from './PlansPage.module.css';
 
-/** Página pública de planos: Solo (1 acesso) e Equipe (até 3), mensal ou anual. */
+/** Página pública de planos: Solo (1 acesso) e Equipe (até 5), mensal ou anual. */
 export function PlansPage() {
   const [params, setParams] = useSearchParams();
   // Estado local responde ao clique na hora; a URL guarda a escolha para compartilhar o link.

@@ -1,7 +1,7 @@
 import { sql, type Kysely } from 'kysely';
 
 /**
- * Plano da oficina: Solo (1 acesso) ou Equipe (até 3), mensal ou anual.
+ * Plano da oficina: Solo (1 acesso) ou Equipe (até 5), mensal ou anual.
  * Oficinas que já existiam ficam no Solo, exceto as que já têm mais de um
  * acesso ativo, que passam para o Equipe.
  */

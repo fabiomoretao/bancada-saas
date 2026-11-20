@@ -35,7 +35,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'team',
     name: 'Equipe',
     tagline: 'Para oficinas com mais gente no balcão e na bancada.',
-    maxUsers: 3,
+    maxUsers: 5,
     monthlyCents: 6990,
     yearlyCents: 69900,
   },

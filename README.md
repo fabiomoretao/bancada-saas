@@ -23,7 +23,7 @@ Assinatura paga pela oficina; o cliente final não paga nada nem cria conta. Os 
 | Plano | Mensal | Anual | Acessos |
 |---|---|---|---|
 | **Solo** | R$ 39,90/mês | R$ 399/ano (equivale a R$ 33,25/mês) | 1 |
-| **Equipe** | R$ 69,90/mês | R$ 699/ano (equivale a R$ 58,25/mês) | até 3 |
+| **Equipe** | R$ 69,90/mês | R$ 699/ano (equivale a R$ 58,25/mês) | até 5 |
 
 No anual, a oficina paga 10 mensalidades e usa 12 (2 meses grátis). A página pública **/planos** compara os planos; a oficina escolhe o plano ao criar a conta e troca depois em **Equipe**. A API aplica o limite de acessos: não deixa cadastrar nem reativar pessoas além do plano, e só permite descer do Equipe para o Solo quando sobra 1 acesso ativo.
 
@@ -43,7 +43,7 @@ Abra **http://localhost:5173**. A tela de entrar é a de um SaaS em produção: 
 
 **Dados de acesso da demonstração:** o `setup` grava o arquivo **`ACESSO-LOCAL.md`** na raiz do projeto, com os e-mails das contas (responsável e técnico), a senha e os links privados de cada OS de exemplo. A senha é aleatória, gerada em cada computador e guardada em `DEMO_PASSWORD` no `apps/api/.env`. O `ACESSO-LOCAL.md` e o `.env` estão no `.gitignore`: nenhuma senha vai para o código ou para o GitHub.
 
-Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**. A oficina de demonstração está no plano **Equipe** (2 de 3 acessos em uso).
+Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**. A oficina de demonstração está no plano **Equipe** (2 de 5 acessos em uso).
 
 **Atualizando de uma versão anterior:** rode `npm install` (há dependência nova: `motion`) e `npm run db:reset` uma vez (com o `npm run dev` parado). Ele acrescenta a senha da demonstração ao `.env`, recria o banco com as contas e gera o `ACESSO-LOCAL.md`. Se a tela de entrar recusa o login, é sinal de que o banco é de antes das contas: o `db:reset` resolve.
 
@@ -166,7 +166,7 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 
 ## Testes
 
-`npm test` roda 109 testes: máquina de estados, validações, dinheiro e a API com banco em memória, incluindo o fluxo completo da entrada à entrega e o cadastro de clientes. Eles cobrem os critérios de aceite 1 a 15 da especificação: contato alternativo, campos obrigatórios, busca e filtro, link correto e sem dados privados, aprovação, revisão com nova versão, recusa, bloqueio de reparo sem aprovação, idempotência da decisão e isolamento entre oficinas. Também cobrem a busca de clientes, o aviso de duplicidade, a abertura de OS com cliente e instrumento já cadastrados, login, sessões, equipe, papéis e instrumentos, além dos planos: valores, plano escolhido no cadastro, limite de 1 e 3 acessos, troca de plano, permissão só do responsável e a migração das oficinas que já existiam.
+`npm test` roda 109 testes: máquina de estados, validações, dinheiro e a API com banco em memória, incluindo o fluxo completo da entrada à entrega e o cadastro de clientes. Eles cobrem os critérios de aceite 1 a 15 da especificação: contato alternativo, campos obrigatórios, busca e filtro, link correto e sem dados privados, aprovação, revisão com nova versão, recusa, bloqueio de reparo sem aprovação, idempotência da decisão e isolamento entre oficinas. Também cobrem a busca de clientes, o aviso de duplicidade, a abertura de OS com cliente e instrumento já cadastrados, login, sessões, equipe, papéis e instrumentos, além dos planos: valores, plano escolhido no cadastro, limite de 1 e 5 acessos, troca de plano, permissão só do responsável e a migração das oficinas que já existiam.
 
 ## Fluxo para demonstrar
 
@@ -179,7 +179,7 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 6. No link: **Aprovar orçamento**.
 7. Na oficina: **Concluir reparo** (com orientação de retirada) → **Registrar entrega**.
 8. O link do cliente mostra cada etapa. As notas internas não aparecem.
-9. **Planos:** em **Equipe**, veja "Plano Equipe · 2 de 3 acessos". Adicione uma pessoa: o botão trava em 3 de 3. Em **Mudar plano**, o Solo aparece indisponível até sobrar 1 acesso. Saia e abra **/planos** → **Começar com o Solo** para criar uma oficina com 1 acesso.
+9. **Planos:** em **Equipe**, veja "Plano Equipe · 2 de 5 acessos". Adicione três pessoas: o botão trava em 5 de 5. Em **Mudar plano**, o Solo aparece indisponível até sobrar 1 acesso. Saia e abra **/planos** → **Começar com o Solo** para criar uma oficina com 1 acesso.
 
 ## PostgreSQL (futuro)
 
