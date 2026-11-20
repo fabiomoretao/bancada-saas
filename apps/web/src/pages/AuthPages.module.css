@@ -43,18 +43,6 @@
   color: var(--color-muted);
   text-align: center;
 }
-.demo {
-  margin: var(--space-5) 0 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-soft);
-  font-size: var(--text-xs);
-  color: var(--color-muted);
-}
-.demo strong {
-  color: var(--color-ink);
-}
-
 .wide {
   width: min(520px, 100%);
 }

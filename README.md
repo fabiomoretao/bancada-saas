@@ -35,24 +35,19 @@ Requisito: **Node.js 22 ou 24 (versão LTS)**. Confira com `node -v`.
 
 ```powershell
 npm install        # instala front, API e pacote compartilhado
-npm run setup      # cria apps/api/.env, o banco SQLite e os dados de demonstração
+npm run setup      # cria apps/api/.env (chave e senha aleatórias), o banco SQLite e a oficina de demonstração
 npm run dev        # sobe API (porta 3333) e front (porta 5173) juntos
 ```
 
-Abra **http://localhost:5173** e entre com uma conta de demonstração (senha `bancada123`):
+Abra **http://localhost:5173**. A tela de entrar é a de um SaaS em produção: não mostra contas nem senhas.
 
-| E-mail | Função |
-|---|---|
-| `dono@bancada.demo` | Responsável: tudo, inclusive a equipe |
-| `tecnico@bancada.demo` | Técnico: fila, orçamentos, clientes e instrumentos |
+**Dados de acesso da demonstração:** o `setup` grava o arquivo **`ACESSO-LOCAL.md`** na raiz do projeto, com os e-mails das contas (responsável e técnico), a senha e os links privados de cada OS de exemplo. A senha é aleatória, gerada em cada computador e guardada em `DEMO_PASSWORD` no `apps/api/.env`. O `ACESSO-LOCAL.md` e o `.env` estão no `.gitignore`: nenhuma senha vai para o código ou para o GitHub.
 
-Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**.
+Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**. A oficina de demonstração está no plano **Equipe** (2 de 3 acessos em uso).
 
-A oficina de demonstração está no plano **Equipe** (2 de 3 acessos em uso).
+**Atualizando de uma versão anterior:** rode `npm run db:reset` uma vez (com o `npm run dev` parado). Ele acrescenta a senha da demonstração ao `.env`, recria o banco com as contas e gera o `ACESSO-LOCAL.md`. Se a tela de entrar recusa o login, é sinal de que o banco é de antes das contas: o `db:reset` resolve.
 
-**Atualizando de uma versão anterior:** as migrações rodam sozinhas ao subir a API (`npm run dev`). Se o banco for de antes das contas de login, rode `npm run db:reset` uma vez para recriá-lo com as contas de demonstração.
-
-O comando `setup` também imprime os links privados de cada OS de exemplo.
+**Em produção:** configure o `.env` sem `DEMO_PASSWORD`, rode só `npm run db:migrate` e cada oficina cria a própria conta pela tela **Criar conta**.
 
 | Comando | O que faz |
 |---|---|
@@ -61,7 +56,7 @@ O comando `setup` também imprime os links privados de cada OS de exemplo.
 | `npm run typecheck` | Verificação de tipos em todos os pacotes |
 | `npm run build` | Build de produção do front |
 | `npm run db:migrate` | Aplica migrações novas sem apagar dados |
-| `npm run db:reset` | Apaga o banco local e recria os dados de demonstração |
+| `npm run db:reset` | Apaga o banco local, recria a demonstração e atualiza o `ACESSO-LOCAL.md` |
 
 **Se o `npm install` falhar no Windows** com erro de compilação do `better-sqlite3`, normalmente é uma versão de Node sem binário pronto. Instale a versão LTS do Node e rode `npm install` de novo.
 
@@ -150,6 +145,7 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 ## Segurança e privacidade
 
 - O link do cliente usa um token aleatório de 256 bits. O banco guarda o **hash SHA-256** para localizar a OS e uma cópia **cifrada (AES-256-GCM)** para a oficina copiar o link de novo. O token nunca fica em texto puro. A chave está em `apps/api/.env`, que não vai para o Git.
+- **Sem senhas no repositório:** a senha das contas de demonstração é gerada no `setup` de cada computador (`DEMO_PASSWORD` no `.env`) e aparece só no `ACESSO-LOCAL.md`, também fora do Git. Os testes usam uma senha própria num banco em memória que é apagado ao fim de cada teste.
 - A rota pública monta a resposta com uma lista explícita de campos: telefone, e-mail, número de série e eventos internos nunca saem por ela.
 - Token malformado, inexistente ou revogado recebem a mesma resposta 404.
 - **Contas e sessões:** senha guardada com scrypt (com salt, nunca em texto). A sessão é um token aleatório num cookie `HttpOnly`, `SameSite=Lax` (e `Secure` em produção); o banco guarda só o hash. Sessões expiram em 7 dias, acabam ao sair e são encerradas na hora quando o responsável desativa um acesso ou a pessoa troca a senha.
@@ -165,7 +161,7 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 
 ## Fluxo para demonstrar
 
-0. **Entrar** com `dono@bancada.demo`. **Clientes** → busque "caio" e veja os instrumentos e as ordens dele → **Nova OS**: o cliente já vem selecionado; escolha o violão. Para ver o aviso de duplicidade, em **Nova ordem** cadastre um cliente novo com o telefone (11) 98888-1234.
+0. **Entrar** com a conta do responsável que está no `ACESSO-LOCAL.md`. **Clientes** → busque "caio" e veja os instrumentos e as ordens dele → **Nova OS**: o cliente já vem selecionado; escolha o violão. Para ver o aviso de duplicidade, em **Nova ordem** cadastre um cliente novo com o telefone (11) 98888-1234.
 1. **Fila** → abra uma OS em "Recebido" → **Iniciar avaliação**.
 2. **Preparar orçamento**: diagnóstico e itens → **Publicar para o cliente**.
 3. **Copiar link do cliente** e abra em outra aba (ou no celular).

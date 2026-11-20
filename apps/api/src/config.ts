@@ -15,6 +15,12 @@ const envSchema = z.object({
     .string()
     .regex(/^[0-9a-fA-F]{64}$/, 'TOKEN_ENCRYPTION_KEY precisa ter 64 caracteres hexadecimais. Rode `npm run setup`.'),
   SESSION_DAYS: z.coerce.number().int().min(1).max(90).default(7),
+  /** Só para o seed da oficina de demonstração local; vazio em produção. */
+  DEMO_PASSWORD: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v : undefined))
+    .refine((v) => v === undefined || v.length >= 8, 'DEMO_PASSWORD precisa ter pelo menos 8 caracteres.'),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

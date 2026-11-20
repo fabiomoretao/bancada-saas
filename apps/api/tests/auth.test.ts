@@ -8,7 +8,7 @@ import type {
   WorkOrderDetailDTO,
   WorkOrderListDTO,
 } from '@bancada/shared';
-import { setupTestApp } from './helpers';
+import { setupTestApp, TEST_PASSWORD } from './helpers';
 
 /** Contas, sessões, equipe e instrumentos. */
 
@@ -39,7 +39,7 @@ describe('acesso à área da oficina', () => {
   });
 
   it('login usa cookie httpOnly e SameSite; /me mostra usuário e oficina', async () => {
-    const res = await anon().post('/api/auth/login').send({ email: 'DONO@bancada.demo', password: 'bancada123' });
+    const res = await anon().post('/api/auth/login').send({ email: 'DONO@bancada.demo', password: TEST_PASSWORD });
     expect(res.status).toBe(200);
     const cookie = String(res.headers['set-cookie']);
     expect(cookie).toMatch(/bancada_session=/);
@@ -147,7 +147,7 @@ describe('equipe', () => {
 
     expect((await ctx.agent.patch(`/api/team/${teoId}`).send({ active: false })).body.active).toBe(false);
     expect((await teo.get('/api/work-orders')).status).toBe(401);
-    expect((await anon().post('/api/auth/login').send({ email: 'tecnico@bancada.demo', password: 'bancada123' })).status).toBe(403);
+    expect((await anon().post('/api/auth/login').send({ email: 'tecnico@bancada.demo', password: TEST_PASSWORD })).status).toBe(403);
   });
 
   it('não deixa desativar a si mesmo nem ficar sem responsável', async () => {
@@ -165,8 +165,8 @@ describe('equipe', () => {
 
   it('trocar a senha exige a atual e passa a valer no login', async () => {
     expect((await ctx.agent.post('/api/auth/password').send({ currentPassword: 'errada', newPassword: 'nova-senha-123' })).status).toBe(422);
-    expect((await ctx.agent.post('/api/auth/password').send({ currentPassword: 'bancada123', newPassword: 'nova-senha-123' })).status).toBe(204);
-    expect((await anon().post('/api/auth/login').send({ email: 'dono@bancada.demo', password: 'bancada123' })).status).toBe(401);
+    expect((await ctx.agent.post('/api/auth/password').send({ currentPassword: TEST_PASSWORD, newPassword: 'nova-senha-123' })).status).toBe(204);
+    expect((await anon().post('/api/auth/login').send({ email: 'dono@bancada.demo', password: TEST_PASSWORD })).status).toBe(401);
     expect((await anon().post('/api/auth/login').send({ email: 'dono@bancada.demo', password: 'nova-senha-123' })).status).toBe(200);
   });
 

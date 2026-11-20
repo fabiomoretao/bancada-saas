@@ -13,7 +13,6 @@ import { hashPassword } from '../lib/passwords';
 export const DEMO_WORKSHOP = { id: 'demo-workshop', name: 'Bancada do Centro' };
 
 /** Contas de demonstração (senha só para uso local). */
-export const DEMO_PASSWORD = 'bancada123';
 export const DEMO_USERS = [
   { name: 'Ana Prado', email: 'dono@bancada.demo', role: 'owner' as const },
   { name: 'Téo Martins', email: 'tecnico@bancada.demo', role: 'staff' as const },
@@ -236,16 +235,19 @@ export interface SeedOptions {
   /** Plano da oficina. Padrão: Equipe se houver mais de um usuário, senão Solo. */
   plan?: PlanId;
   users?: Array<{ name: string; email: string; role: 'owner' | 'staff' }>;
-  password?: string;
   /** Primeiro número de OS (a demonstração começa em OS-0240). */
   firstOrderNumber?: number;
   orders?: SeedOrder[];
 }
 
-export async function seedDemo(db: DB, tokenKey: string, options: SeedOptions = {}) {
+/**
+ * Cria a oficina de demonstração. A senha das contas vem de fora (DEMO_PASSWORD
+ * no .env ou a senha dos testes): nenhuma senha fica no código.
+ */
+export async function seedDemo(db: DB, tokenKey: string, password: string, options: SeedOptions = {}) {
   const workshop = options.workshop ?? DEMO_WORKSHOP;
   const users = options.users ?? DEMO_USERS;
-  const passwordHash = await hashPassword(options.password ?? DEMO_PASSWORD);
+  const passwordHash = await hashPassword(password);
   const orders = options.orders ?? ORDERS;
   const firstNumber = options.firstOrderNumber ?? 240;
   const now = Date.now();

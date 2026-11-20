@@ -163,11 +163,6 @@ export function LoginPage() {
             {login.isPending ? 'Entrando…' : 'Entrar'}
           </button>
         </form>
-        {import.meta.env.DEV && (
-          <p className={styles.demo}>
-            <strong>Demonstração local:</strong> dono@bancada.demo ou tecnico@bancada.demo, senha bancada123.
-          </p>
-        )}
       </AuthLayout>
     </GuestOnly>
   );
