@@ -1,9 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KeyIcon, UserPlusIcon } from '@phosphor-icons/react';
+import { KeyIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import {
+  accessLabel,
+  BILLING_CYCLE_LABELS,
   changePasswordSchema,
   createUserSchema,
+  PLAN_IDS,
+  PLANS,
   ROLE_LABELS,
+  type BillingCycle,
+  type PlanId,
+  type WorkshopPlanDTO,
   type ChangePasswordInput,
   type CreateUserInput,
   type TeamMemberDTO,
@@ -11,7 +18,10 @@ import {
 import { useId, useState } from 'react';
 import { useForm, type FieldPath } from 'react-hook-form';
 import { ApiError } from '../api/client';
-import { useChangePassword, useCreateMember, useSession, useTeam, useUpdateMember } from '../api/hooks';
+import { Link } from 'react-router-dom';
+import { useChangePassword, useChangePlan, useCreateMember, usePlan, useSession, useTeam, useUpdateMember } from '../api/hooks';
+import { Dialog } from '../components/Dialog';
+import { PlanPicker, planPriceLabel } from '../components/PlanPicker';
 import { StateMessage } from '../components/StateMessage';
 import { useToast } from '../components/Toast';
 import { formatDate } from '../lib/format';
@@ -21,8 +31,10 @@ import styles from './TeamPage.module.css';
 export function TeamPage() {
   const session = useSession();
   const team = useTeam();
+  const plan = usePlan();
   const isOwner = session.data?.user.role === 'owner';
   const [adding, setAdding] = useState(false);
+  const full = plan.data ? plan.data.activeUsers >= plan.data.maxUsers : false;
 
   return (
     <>
@@ -36,13 +48,21 @@ export function TeamPage() {
           </p>
         </div>
         {isOwner && !adding && (
-          <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setAdding(true)}
+            disabled={full}
+            aria-describedby={full ? 'plano-cheio' : undefined}
+          >
             <UserPlusIcon size={18} aria-hidden="true" /> Adicionar pessoa
           </button>
         )}
       </div>
 
-      {adding && <AddMemberForm onDone={() => setAdding(false)} />}
+      {plan.data && <PlanSection plan={plan.data} isOwner={isOwner} />}
+
+      {adding && !full && <AddMemberForm onDone={() => setAdding(false)} />}
 
       <section className={`surface ${styles.card}`} aria-labelledby="equipe-lista">
         <h2 id="equipe-lista" className={styles.cardTitle}>
@@ -84,13 +104,15 @@ export function TeamPage() {
 function MemberRow({ member, isOwner, isSelf }: { member: TeamMemberDTO; isOwner: boolean; isSelf: boolean }) {
   const update = useUpdateMember();
   const toast = useToast();
+  const [confirmingDisable, setConfirmingDisable] = useState(false);
 
   async function change(input: { role?: 'owner' | 'staff'; active?: boolean }, message: string) {
-    if (input.active === false && !window.confirm(`Desativar o acesso de ${member.name}? A pessoa sai na hora e não consegue entrar.`)) return;
     try {
       await update.mutateAsync({ id: member.id, ...input });
+      setConfirmingDisable(false);
       toast(message);
     } catch (err) {
+      setConfirmingDisable(false);
       toast(err instanceof Error ? err.message : 'Não foi possível alterar.');
     }
   }
@@ -104,11 +126,11 @@ function MemberRow({ member, isOwner, isSelf }: { member: TeamMemberDTO; isOwner
         </strong>
         <small>{member.email}</small>
       </td>
-      <td>{ROLE_LABELS[member.role]}</td>
-      <td>{member.active ? 'Ativo' : 'Desativado'}</td>
-      <td>{formatDate(member.createdAt)}</td>
+      <td data-label="Função">{ROLE_LABELS[member.role]}</td>
+      <td data-label="Situação">{member.active ? 'Ativo' : 'Desativado'}</td>
+      <td data-label="Desde">{formatDate(member.createdAt)}</td>
       {isOwner && (
-        <td>
+        <td data-label="Ações" data-actions={isSelf ? 'none' : undefined}>
           {isSelf ? (
             <span className={styles.muted}>—</span>
           ) : (
@@ -132,15 +154,138 @@ function MemberRow({ member, isOwner, isSelf }: { member: TeamMemberDTO; isOwner
                 type="button"
                 className={`btn btn-ghost ${member.active ? styles.danger : ''}`}
                 disabled={update.isPending}
-                onClick={() => change({ active: !member.active }, member.active ? 'Acesso desativado' : 'Acesso reativado')}
+                onClick={() => (member.active ? setConfirmingDisable(true) : change({ active: true }, 'Acesso reativado'))}
               >
                 {member.active ? 'Desativar' : 'Reativar'}
               </button>
+              <Dialog
+                open={confirmingDisable}
+                title={`Desativar o acesso de ${member.name}?`}
+                confirmLabel="Desativar acesso"
+                tone="danger"
+                busy={update.isPending}
+                onConfirm={() => change({ active: false }, 'Acesso desativado')}
+                onClose={() => setConfirmingDisable(false)}
+              >
+                <p>A pessoa sai na hora e não consegue mais entrar. O histórico das ordens continua com o nome dela, e você pode reativar depois.</p>
+              </Dialog>
             </div>
           )}
         </td>
       )}
     </tr>
+  );
+}
+
+/** Plano atual, acessos em uso e troca de plano (só o responsável troca). */
+function PlanSection({ plan, isOwner }: { plan: WorkshopPlanDTO; isOwner: boolean }) {
+  const [changing, setChanging] = useState(false);
+  const info = PLANS[plan.plan];
+  const full = plan.activeUsers >= plan.maxUsers;
+  const used = Math.min(plan.activeUsers, plan.maxUsers);
+
+  return (
+    <section className={`surface ${styles.card} ${styles.planCard}`} aria-labelledby="plano-atual">
+      <div className={styles.planInfo}>
+        <h2 id="plano-atual" className={styles.cardTitle}>
+          <UsersIcon size={20} aria-hidden="true" /> Plano {info.name}
+          <span className={styles.planCycle}>{BILLING_CYCLE_LABELS[plan.billingCycle]}</span>
+        </h2>
+        <p className={styles.planPrice}>
+          {planPriceLabel(plan.plan, plan.billingCycle)} · {accessLabel(info.maxUsers)}
+        </p>
+        <div className={styles.meter}>
+          <div
+            className={styles.meterBar}
+            role="meter"
+            aria-label="Acessos em uso"
+            aria-valuemin={0}
+            aria-valuemax={plan.maxUsers}
+            aria-valuenow={plan.activeUsers}
+            aria-valuetext={`${plan.activeUsers} de ${plan.maxUsers}`}
+          >
+            <span style={{ width: `${(used / plan.maxUsers) * 100}%` }} />
+          </div>
+          <span className={styles.meterText}>
+            <strong>
+              {plan.activeUsers} de {plan.maxUsers}
+            </strong>{' '}
+            {plan.maxUsers === 1 ? 'acesso em uso' : 'acessos em uso'}
+          </span>
+        </div>
+        {full && (
+          <p id="plano-cheio" className={styles.planHint}>
+            {plan.plan === 'solo'
+              ? 'O plano Solo inclui 1 acesso. Para cadastrar mais pessoas, mude para o plano Equipe.'
+              : 'Todos os acessos do plano estão em uso. Desative um acesso para liberar a vaga.'}
+          </p>
+        )}
+      </div>
+      <div className={styles.planActions}>
+        {isOwner ? (
+          <button type="button" className="btn" onClick={() => setChanging(true)}>
+            Mudar plano
+          </button>
+        ) : (
+          <span className={styles.planHint}>Só o responsável muda o plano.</span>
+        )}
+        <Link to="/planos" className={styles.planLink}>
+          Comparar planos
+        </Link>
+      </div>
+      {isOwner && <ChangePlanDialog open={changing} plan={plan} onClose={() => setChanging(false)} />}
+    </section>
+  );
+}
+
+function ChangePlanDialog({ open, plan, onClose }: { open: boolean; plan: WorkshopPlanDTO; onClose: () => void }) {
+  const change = useChangePlan();
+  const toast = useToast();
+  const [selected, setSelected] = useState<PlanId>(plan.plan);
+  const [cycle, setCycle] = useState<BillingCycle>(plan.billingCycle);
+  const [error, setError] = useState('');
+
+  // Planos que não comportam os acessos ativos de hoje.
+  const unavailable: Partial<Record<PlanId, string>> = {};
+  for (const id of PLAN_IDS) {
+    const extra = plan.activeUsers - PLANS[id].maxUsers;
+    if (extra > 0) {
+      unavailable[id] = `A oficina tem ${plan.activeUsers} acessos ativos. Desative ${extra} na lista da equipe antes de mudar para este plano.`;
+    }
+  }
+
+  function close() {
+    setSelected(plan.plan);
+    setCycle(plan.billingCycle);
+    setError('');
+    onClose();
+  }
+
+  async function confirm() {
+    if (selected === plan.plan && cycle === plan.billingCycle) return close();
+    setError('');
+    try {
+      await change.mutateAsync({ plan: selected, billingCycle: cycle });
+      toast(`Plano alterado para ${PLANS[selected].name} (${BILLING_CYCLE_LABELS[cycle].toLowerCase()}).`);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível mudar o plano.');
+    }
+  }
+
+  return (
+    <Dialog open={open} title="Mudar plano" confirmLabel="Confirmar plano" busy={change.isPending} error={error} onConfirm={confirm} onClose={close}>
+      <p>Os dois planos têm as mesmas funções; muda o número de acessos. A troca vale na hora.</p>
+      <PlanPicker
+        plan={selected}
+        cycle={cycle}
+        onPlanChange={setSelected}
+        onCycleChange={setCycle}
+        current={plan}
+        unavailable={unavailable}
+        legend="Novo plano"
+      />
+    </Dialog>
   );
 }
 

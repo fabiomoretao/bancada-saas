@@ -1,11 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, signupSchema, type LoginInput, type SignupInput } from '@bancada/shared';
+import {
+  cycleFromSlug,
+  loginSchema,
+  planFromSlug,
+  PLANS,
+  signupSchema,
+  type BillingCycle,
+  type LoginInput,
+  type PlanId,
+  type SignupInput,
+} from '@bancada/shared';
 import { useId, useState, type ReactNode } from 'react';
 import { useForm, type FieldPath, type FieldValues, type Path, type UseFormRegister } from 'react-hook-form';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client';
 import { useLogin, useSession, useSignup } from '../api/hooks';
 import logo from '../assets/logo-bancada.svg';
+import { PlanPicker, planPriceLabel } from '../components/PlanPicker';
 import { StateMessage } from '../components/StateMessage';
 import styles from './AuthPages.module.css';
 
@@ -16,10 +27,22 @@ function useReturnTo() {
   return target.startsWith('/') && !target.startsWith('//') ? target : '/ordens';
 }
 
-function AuthLayout({ title, subtitle, children, footer }: { title: string; subtitle: string; children: ReactNode; footer: ReactNode }) {
+function AuthLayout({
+  title,
+  subtitle,
+  children,
+  footer,
+  wide,
+}: {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+  footer: ReactNode;
+  wide?: boolean;
+}) {
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
+      <div className={`${styles.card} ${wide ? styles.wide : ''}`}>
         <div className={styles.brand}>
           <img src={logo} alt="" className={styles.logo} />
           <span>Bancada</span>
@@ -114,6 +137,10 @@ export function LoginPage() {
         footer={
           <>
             Ainda não tem conta? <Link to="/criar-conta">Criar conta da oficina</Link>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
+            <Link to="/planos">Ver planos</Link>
           </>
         }
       >
@@ -149,6 +176,9 @@ export function LoginPage() {
 export function SignupPage() {
   const signup = useSignup();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const [plan, setPlan] = useState<PlanId>(() => planFromSlug(params.get('plano')) ?? 'solo');
+  const [cycle, setCycle] = useState<BillingCycle>(() => cycleFromSlug(params.get('ciclo')) ?? 'monthly');
   const [formError, setFormError] = useState('');
   const { register, handleSubmit, formState, setError } = useForm<SignupInput>({ resolver: zodResolver(signupSchema) });
   const errors = formState.errors;
@@ -156,7 +186,7 @@ export function SignupPage() {
   const onSubmit = handleSubmit(async (values) => {
     setFormError('');
     try {
-      await signup.mutateAsync(values);
+      await signup.mutateAsync({ ...values, plan, billingCycle: cycle });
       navigate('/ordens', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.code === 'email_in_use') setError('email', { message: err.message });
@@ -170,14 +200,21 @@ export function SignupPage() {
     <GuestOnly>
       <AuthLayout
         title="Criar conta da oficina"
-        subtitle="Você será o responsável e poderá cadastrar sua equipe depois."
+        subtitle="Você será o responsável pela oficina. Escolha o plano agora e troque depois, se precisar."
+        wide
         footer={
           <>
             Já tem conta? <Link to="/entrar">Entrar</Link>
+            <span className={styles.sep} aria-hidden="true">
+              ·
+            </span>
+            <Link to="/planos">Comparar planos</Link>
           </>
         }
       >
         <form className={styles.form} onSubmit={onSubmit} noValidate>
+          <PlanPicker plan={plan} cycle={cycle} onPlanChange={setPlan} onCycleChange={setCycle} />
+          <hr className={styles.divider} />
           <TextField name="workshopName" label="Nome da oficina" autoComplete="organization" register={register} error={errors.workshopName?.message} />
           <TextField name="name" label="Seu nome" autoComplete="name" register={register} error={errors.name?.message} />
           <TextField name="email" label="E-mail" type="email" autoComplete="email" register={register} error={errors.email?.message} />
@@ -198,6 +235,9 @@ export function SignupPage() {
           <button type="submit" className="btn btn-primary" disabled={signup.isPending}>
             {signup.isPending ? 'Criando…' : 'Criar conta e entrar'}
           </button>
+          <p className={styles.fine}>
+            Plano {PLANS[plan].name}, {planPriceLabel(plan, cycle)}. Projeto acadêmico: nenhuma cobrança é feita.
+          </p>
         </form>
       </AuthLayout>
     </GuestOnly>

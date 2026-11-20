@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { normalizeEmail, normalizePhone } from '@bancada/shared';
 import type {
   ChangePasswordInput,
+  ChangePlanInput,
+  WorkshopPlanDTO,
   CreateUserInput,
   InstrumentDetailDTO,
   InstrumentListDTO,
@@ -236,11 +238,16 @@ export function useTeam() {
   return useQuery({ queryKey: ['team'], queryFn: () => api<{ items: TeamMemberDTO[] }>('/team') });
 }
 
+/** Mudanças na equipe alteram os acessos em uso do plano. */
+function invalidateTeam(client: ReturnType<typeof useQueryClient>) {
+  return Promise.all([client.invalidateQueries({ queryKey: ['team'] }), client.invalidateQueries({ queryKey: PLAN_KEY })]);
+}
+
 export function useCreateMember() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateUserInput) => postJson<TeamMemberDTO>('/team', input),
-    onSuccess: () => client.invalidateQueries({ queryKey: ['team'] }),
+    onSuccess: () => invalidateTeam(client),
   });
 }
 
@@ -249,7 +256,26 @@ export function useUpdateMember() {
   return useMutation({
     mutationFn: ({ id, ...input }: UpdateUserInput & { id: string }) =>
       api<TeamMemberDTO>(`/team/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
-    onSuccess: () => client.invalidateQueries({ queryKey: ['team'] }),
+    onSuccess: () => invalidateTeam(client),
+  });
+}
+
+// ---------------- Plano da oficina ----------------
+
+export const PLAN_KEY = ['plan'] as const;
+
+export function usePlan() {
+  return useQuery({ queryKey: PLAN_KEY, queryFn: () => api<WorkshopPlanDTO>('/workshop/plan') });
+}
+
+export function useChangePlan() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ChangePlanInput) => api<WorkshopPlanDTO>('/workshop/plan', { method: 'PUT', body: JSON.stringify(input) }),
+    onSuccess: (plan) => {
+      client.setQueryData(PLAN_KEY, plan);
+      return client.invalidateQueries({ queryKey: SESSION_KEY });
+    },
   });
 }
 

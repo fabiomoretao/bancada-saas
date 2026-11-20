@@ -31,3 +31,9 @@ export const possibleDuplicate = (duplicates: CustomerMatchDTO[]) =>
     undefined,
     duplicates,
   );
+
+/** Violação de índice único (SQLite ou PostgreSQL), por exemplo dois cadastros simultâneos com o mesmo e-mail. */
+export function isUniqueViolation(err: unknown): boolean {
+  const code = (err as { code?: unknown } | null)?.code;
+  return code === 'SQLITE_CONSTRAINT_UNIQUE' || code === '23505';
+}

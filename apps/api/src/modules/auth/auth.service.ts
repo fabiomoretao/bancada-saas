@@ -1,11 +1,12 @@
 import type { loginSchema, SessionDTO, signupSchema, changePasswordSchema } from '@bancada/shared';
 import type { z } from 'zod';
 import type { DB } from '../../db/client';
-import { AppError, conflict } from '../../lib/errors';
+import { AppError, conflict, isUniqueViolation } from '../../lib/errors';
 import { newId, nowIso } from '../../lib/ids';
 import { DUMMY_HASH, hashPassword, verifyPassword } from '../../lib/passwords';
 import { createRateLimiter } from '../../lib/rate-limit';
 import { generateToken, hashToken } from '../../lib/tokens';
+import { findPlan } from '../workshop/workshop.service';
 
 type SignupData = z.output<typeof signupSchema>;
 type LoginData = z.output<typeof loginSchema>;
@@ -18,6 +19,7 @@ export interface AuthContext {
   sessionId: string;
 }
 
+const emailInUse = () => conflict('email_in_use', 'Já existe uma conta com este e-mail. Entre ou use outro e-mail.');
 const invalidLogin = () => new AppError(401, 'invalid_credentials', 'E-mail ou senha incorretos.');
 export const unauthenticated = () => new AppError(401, 'unauthenticated', 'Entre na sua conta para continuar.');
 
@@ -49,19 +51,46 @@ export function createAuthService({ db, sessionDays }: { db: DB; sessionDays: nu
   /** Cria a oficina e o primeiro usuário (responsável) e já entra. */
   async function signup(data: SignupData) {
     const exists = await db.selectFrom('users').select('id').where('email', '=', data.email).executeTakeFirst();
-    if (exists) throw conflict('email_in_use', 'Já existe uma conta com este e-mail. Entre ou use outro e-mail.');
+    if (exists) throw emailInUse();
 
     const now = nowIso();
     const workshopId = newId();
     const userId = newId();
     const passwordHash = await hashPassword(data.password);
-    await db.transaction().execute(async (trx) => {
-      await trx.insertInto('workshops').values({ id: workshopId, name: data.workshopName, nextOrderNumber: 1, createdAt: now }).execute();
-      await trx
-        .insertInto('users')
-        .values({ id: userId, workshopId, name: data.name, email: data.email, passwordHash, role: 'owner', createdAt: now, updatedAt: now, disabledAt: null })
-        .execute();
-    });
+    await db
+      .transaction()
+      .execute(async (trx) => {
+        await trx
+          .insertInto('workshops')
+          .values({
+            id: workshopId,
+            name: data.workshopName,
+            nextOrderNumber: 1,
+            plan: data.plan,
+            billingCycle: data.billingCycle,
+            planChangedAt: now,
+            createdAt: now,
+          })
+          .execute();
+        await trx
+          .insertInto('users')
+          .values({
+            id: userId,
+            workshopId,
+            name: data.name,
+            email: data.email,
+            passwordHash,
+            role: 'owner',
+            createdAt: now,
+            updatedAt: now,
+            disabledAt: null,
+          })
+          .execute();
+      })
+      .catch((err: unknown) => {
+        // Outro cadastro com o mesmo e-mail entrou no meio do caminho.
+        throw isUniqueViolation(err) ? emailInUse() : err;
+      });
     return startSession(userId);
   }
 
@@ -111,7 +140,7 @@ export function createAuthService({ db, sessionDays }: { db: DB; sessionDays: nu
       .executeTakeFirstOrThrow();
     return {
       user: { id: row.id, name: row.name, email: row.email, role: row.role },
-      workshop: { id: row.workshopId, name: row.workshopName },
+      workshop: { id: row.workshopId, name: row.workshopName, ...(await findPlan(db, row.workshopId)) },
     };
   }
 

@@ -1,9 +1,11 @@
 import type { ColumnType, Insertable, Selectable } from 'kysely';
 import type {
   ActorType,
+  BillingCycle,
   EstimateItemType,
   EstimateStatus,
   EventVisibility,
+  PlanId,
   WorkOrderStatus,
 } from '@bancada/shared';
 
@@ -24,6 +26,9 @@ export interface WorkshopTable {
   id: string;
   name: string;
   nextOrderNumber: number;
+  plan: ColumnType<PlanId, PlanId | undefined, PlanId>;
+  billingCycle: ColumnType<BillingCycle, BillingCycle | undefined, BillingCycle>;
+  planChangedAt: ColumnType<string | null, string | null | undefined, string | null>;
   createdAt: string;
 }
 

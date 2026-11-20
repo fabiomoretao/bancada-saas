@@ -92,7 +92,113 @@
   gap: var(--space-3);
 }
 
+/* ---------- Plano ---------- */
+.planCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+.planCard .cardTitle {
+  margin-bottom: var(--space-1);
+}
+.planInfo {
+  flex: 1;
+  min-width: 0;
+}
+.planCycle {
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-active);
+  font: 600 var(--text-xs) / 1.6 var(--font-ui);
+  color: var(--color-primary);
+}
+.planPrice {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 420px;
+}
+.meterBar {
+  flex: 1;
+  min-width: 96px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-active);
+}
+.meterBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+.meterText {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.meterText strong {
+  color: var(--color-ink);
+}
+.planHint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+.planActions {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-2);
+}
+.planActions .planHint {
+  margin: 0;
+}
+.planLink {
+  font-size: var(--text-sm);
+}
+
 @media (max-width: 700px) {
+  /* Tabela vira lista: cada pessoa em um bloco, sem rolagem lateral. */
+  .table thead {
+    display: none;
+  }
+  .table tr {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .table td {
+    padding: 0;
+    border: 0;
+  }
+  .table td[data-label]:not([data-label='Ações'])::before {
+    content: attr(data-label) ': ';
+    color: var(--color-muted);
+  }
+  .table td[data-actions='none'] {
+    display: none;
+  }
+  .table td[data-label='Ações'] {
+    margin-top: var(--space-1);
+  }
+  .rowActions .btn-ghost,
+  .rowActions :global(.btn-ghost) {
+    padding-left: 0;
+  }
+  .planCard {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .planActions {
+    justify-items: start;
+  }
   .pageHead {
     flex-direction: column;
     align-items: flex-start;

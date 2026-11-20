@@ -1,4 +1,5 @@
 import type { WorkOrderStatus } from './status';
+import type { BillingCycle, PlanId } from './plans';
 
 /** Contratos de resposta da API, compartilhados entre servidor e front. */
 
@@ -161,9 +162,18 @@ export interface ApiErrorDTO {
 
 // ---------------- Contas e equipe ----------------
 
+export interface WorkshopPlanDTO {
+  plan: PlanId;
+  billingCycle: BillingCycle;
+  /** Acessos permitidos pelo plano. */
+  maxUsers: number;
+  /** Acessos ativos hoje. */
+  activeUsers: number;
+}
+
 export interface SessionDTO {
   user: { id: string; name: string; email: string; role: 'owner' | 'staff' };
-  workshop: { id: string; name: string };
+  workshop: { id: string; name: string } & WorkshopPlanDTO;
 }
 
 export interface TeamMemberDTO {

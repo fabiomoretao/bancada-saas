@@ -17,6 +17,8 @@ import { publicTrackingRouter } from './modules/public-tracking/public-tracking.
 import { createPublicTrackingService } from './modules/public-tracking/public-tracking.service';
 import { teamRouter } from './modules/team/team.routes';
 import { createTeamService } from './modules/team/team.service';
+import { workshopRouter } from './modules/workshop/workshop.routes';
+import { createWorkshopService } from './modules/workshop/workshop.service';
 import { workOrdersRouter } from './modules/work-orders/work-orders.routes';
 import { createWorkOrdersService } from './modules/work-orders/work-orders.service';
 
@@ -42,6 +44,7 @@ export function createApp({ db, config }: { db: DB; config: AppConfig }) {
   const customers = createCustomersService({ db });
   const instruments = createInstrumentsService({ db });
   const team = createTeamService({ db });
+  const workshop = createWorkshopService({ db });
   const publicTracking = createPublicTrackingService({ db });
 
   // Conta: criar, entrar, sair e sessão atual.
@@ -54,6 +57,7 @@ export function createApp({ db, config }: { db: DB; config: AppConfig }) {
   app.use('/api/customers', signedIn, customersRouter(customers));
   app.use('/api/instruments', signedIn, instrumentsRouter(instruments));
   app.use('/api/team', signedIn, teamRouter(team));
+  app.use('/api/workshop', signedIn, workshopRouter(workshop));
 
   // Cliente final: sem conta, autorizado apenas pelo token do link privado.
   app.use('/api/public', publicTrackingRouter(publicTracking));

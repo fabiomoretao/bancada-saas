@@ -11,6 +11,8 @@ coverage/
 # Banco local
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 apps/api/src/generated/
 
 .DS_Store

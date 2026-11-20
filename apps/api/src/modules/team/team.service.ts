@@ -1,10 +1,11 @@
 import type { createUserSchema, TeamMemberDTO, updateUserSchema } from '@bancada/shared';
 import type { z } from 'zod';
 import type { DB } from '../../db/client';
-import { AppError, conflict, notFound } from '../../lib/errors';
+import { AppError, conflict, isUniqueViolation, notFound } from '../../lib/errors';
 import { newId, nowIso } from '../../lib/ids';
 import { hashPassword } from '../../lib/passwords';
 import type { AuthContext } from '../auth/auth.service';
+import { findPlan, planLimitReached } from '../workshop/workshop.service';
 
 type CreateUserData = z.output<typeof createUserSchema>;
 type UpdateUserData = z.output<typeof updateUserSchema>;
@@ -12,7 +13,8 @@ type UpdateUserData = z.output<typeof updateUserSchema>;
 /**
  * Equipe da oficina. O responsável cadastra funcionários (com uma senha
  * inicial que a pessoa troca depois), muda a função e desativa acessos.
- * A oficina sempre mantém pelo menos um responsável ativo.
+ * A oficina sempre mantém pelo menos um responsável ativo, e o número de
+ * acessos ativos nunca passa do limite do plano (Solo 1, Equipe 3).
  */
 export function createTeamService({ db }: { db: DB }) {
   async function list(workshopId: string): Promise<TeamMemberDTO[]> {
@@ -30,20 +32,30 @@ export function createTeamService({ db }: { db: DB }) {
     if (exists) throw conflict('email_in_use', 'Este e-mail já tem acesso ao Bancada.');
     const now = nowIso();
     const id = newId();
+    const passwordHash = await hashPassword(data.password);
     await db
-      .insertInto('users')
-      .values({
-        id,
-        workshopId: ctx.workshopId,
-        name: data.name,
-        email: data.email,
-        passwordHash: await hashPassword(data.password),
-        role: data.role,
-        createdAt: now,
-        updatedAt: now,
-        disabledAt: null,
+      .transaction()
+      .execute(async (trx) => {
+        const plan = await findPlan(trx, ctx.workshopId);
+        if (plan.activeUsers >= plan.maxUsers) throw planLimitReached(plan.plan);
+        await trx
+          .insertInto('users')
+          .values({
+            id,
+            workshopId: ctx.workshopId,
+            name: data.name,
+            email: data.email,
+            passwordHash,
+            role: data.role,
+            createdAt: now,
+            updatedAt: now,
+            disabledAt: null,
+          })
+          .execute();
       })
-      .execute();
+      .catch((err: unknown) => {
+        throw isUniqueViolation(err) ? conflict('email_in_use', 'Este e-mail já tem acesso ao Bancada.') : err;
+      });
     return { id, name: data.name, email: data.email, role: data.role, active: true, createdAt: now };
   }
 
@@ -69,6 +81,11 @@ export function createTeamService({ db }: { db: DB }) {
 
     const now = nowIso();
     await db.transaction().execute(async (trx) => {
+      // Reativar um acesso ocupa uma vaga do plano.
+      if (nextActive && user.disabledAt) {
+        const plan = await findPlan(trx, ctx.workshopId);
+        if (plan.activeUsers >= plan.maxUsers) throw planLimitReached(plan.plan);
+      }
       await trx
         .updateTable('users')
         .set({ role: nextRole, disabledAt: nextActive ? null : (user.disabledAt ?? now), updatedAt: now })

@@ -193,11 +193,17 @@ function EstimateForm({ order }: { order: WorkOrderDetailDTO }) {
     }
   });
 
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
+
   async function onDiscard() {
-    if (!window.confirm('Descartar o rascunho? As alterações não publicadas serão perdidas.')) return;
-    await discard.mutateAsync(undefined);
-    toast('Rascunho descartado');
-    navigate(`/ordens/${order.id}`);
+    try {
+      await discard.mutateAsync(undefined);
+      setConfirmingDiscard(false);
+      toast('Rascunho descartado');
+      navigate(`/ordens/${order.id}`);
+    } catch {
+      // a mensagem aparece no diálogo
+    }
   }
 
   const busy = saveDraft.isPending || publish.isPending;
@@ -363,7 +369,7 @@ function EstimateForm({ order }: { order: WorkOrderDetailDTO }) {
                 Salvar rascunho
               </button>
               {order.draftEstimate && (
-                <button type="button" className="btn btn-ghost" onClick={onDiscard} disabled={busy || discard.isPending}>
+                <button type="button" className="btn btn-ghost" onClick={() => setConfirmingDiscard(true)} disabled={busy || discard.isPending}>
                   Descartar rascunho
                 </button>
               )}
@@ -384,6 +390,19 @@ function EstimateForm({ order }: { order: WorkOrderDetailDTO }) {
           Total de <strong>{formatCents(total)}</strong>. O cliente poderá aprovar, pedir revisão ou recusar pelo link privado.
         </p>
         <p>Depois de publicada, esta versão não pode ser editada; mudanças geram uma nova versão.</p>
+      </Dialog>
+
+      <Dialog
+        open={confirmingDiscard}
+        title="Descartar o rascunho?"
+        confirmLabel="Descartar"
+        tone="danger"
+        busy={discard.isPending}
+        error={discard.error?.message}
+        onConfirm={onDiscard}
+        onClose={() => setConfirmingDiscard(false)}
+      >
+        <p>As alterações não publicadas serão perdidas. O que o cliente já viu continua igual.</p>
       </Dialog>
     </div>
   );

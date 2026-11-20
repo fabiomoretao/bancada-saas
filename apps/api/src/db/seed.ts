@@ -1,4 +1,4 @@
-import type { EstimateItemType, EstimateStatus, WorkOrderStatus } from '@bancada/shared';
+import type { EstimateItemType, EstimateStatus, PlanId, WorkOrderStatus } from '@bancada/shared';
 import { lineTotalCents, normalizeEmail, normalizePhone, totalCents } from '@bancada/shared';
 import type { DB } from './client';
 import { formatOrderCode, newId } from '../lib/ids';
@@ -233,6 +233,8 @@ const ORDERS: SeedOrder[] = [
 
 export interface SeedOptions {
   workshop?: { id: string; name: string };
+  /** Plano da oficina. Padrão: Equipe se houver mais de um usuário, senão Solo. */
+  plan?: PlanId;
   users?: Array<{ name: string; email: string; role: 'owner' | 'staff' }>;
   password?: string;
   /** Primeiro número de OS (a demonstração começa em OS-0240). */
@@ -254,7 +256,14 @@ export async function seedDemo(db: DB, tokenKey: string, options: SeedOptions = 
   await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('workshops')
-      .values({ id: workshop.id, name: workshop.name, nextOrderNumber: firstNumber + orders.length, createdAt: at(30) })
+      .values({
+        id: workshop.id,
+        name: workshop.name,
+        nextOrderNumber: firstNumber + orders.length,
+        plan: options.plan ?? (users.length > 1 ? 'team' : 'solo'),
+        billingCycle: 'monthly',
+        createdAt: at(30),
+      })
       .execute();
 
     for (const user of users) {

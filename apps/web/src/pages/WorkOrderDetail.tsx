@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAddNote, useRegeneratePublicLink, useWorkOrder } from '../api/hooks';
 import { CopyLinkButton } from '../components/CopyLinkButton';
+import { Dialog } from '../components/Dialog';
 import { EstimateBox, versionLabel } from '../components/EstimateBox';
 import { StateMessage } from '../components/StateMessage';
 import { StatusBadge } from '../components/StatusBadge';
@@ -49,11 +50,16 @@ function DetailContent({ order, justCreated }: { order: WorkOrderDetailDTO; just
   const subtitle = instrumentSubtitle(order.instrument);
   const contact = [order.customer.phone, order.customer.email].filter(Boolean).join(' · ');
 
+  const [confirmingLink, setConfirmingLink] = useState(false);
+
   async function handleRegenerate() {
-    const ok = window.confirm('Gerar um link novo? O link enviado antes ao cliente deixará de funcionar.');
-    if (!ok) return;
-    await regenerate.mutateAsync();
-    toast('Link novo gerado. Copie e envie ao cliente.');
+    try {
+      await regenerate.mutateAsync();
+      setConfirmingLink(false);
+      toast('Link novo gerado. Copie e envie ao cliente.');
+    } catch {
+      // a mensagem aparece no diálogo
+    }
   }
 
   return (
@@ -146,11 +152,25 @@ function DetailContent({ order, justCreated }: { order: WorkOrderDetailDTO; just
         ) : (
           <span className={styles.noteMuted}>Sem link ativo.</span>
         )}
-        <button type="button" className="btn" onClick={handleRegenerate} disabled={regenerate.isPending}>
+        <button type="button" className="btn" onClick={() => setConfirmingLink(true)} disabled={regenerate.isPending}>
           <ArrowsClockwiseIcon size={18} aria-hidden="true" />
           Gerar link novo
         </button>
       </div>
+      <Dialog
+        open={confirmingLink}
+        title="Gerar um link novo?"
+        confirmLabel="Gerar link novo"
+        busy={regenerate.isPending}
+        error={regenerate.error?.message}
+        onConfirm={handleRegenerate}
+        onClose={() => {
+          regenerate.reset();
+          setConfirmingLink(false);
+        }}
+      >
+        <p>O link enviado antes ao cliente deixa de funcionar. Use quando o link foi parar com a pessoa errada.</p>
+      </Dialog>
 
       <details className={styles.events}>
         <summary>Histórico completo ({order.events.length})</summary>
@@ -189,6 +209,8 @@ function NoteForm({ orderId }: { orderId: string }) {
     try {
       await addNote.mutateAsync({ message: message.trim(), visibility: isPublic ? 'customer' : 'internal' });
       setMessage('');
+      // Volta para nota interna: a próxima mensagem só vai ao cliente se marcada de novo.
+      setIsPublic(false);
       toast(isPublic ? 'Atualização publicada para o cliente' : 'Nota interna registrada');
     } catch {
       // mensagem exibida abaixo

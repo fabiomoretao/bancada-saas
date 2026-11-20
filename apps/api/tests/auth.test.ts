@@ -204,3 +204,18 @@ describe('instrumentos', () => {
     expect((await ctx.agent.get(`/api/instruments/${otherInst.id}`)).status).toBe(404);
   });
 });
+
+describe('cadastros simultâneos', () => {
+  it('duas contas com o mesmo e-mail ao mesmo tempo: uma entra, a outra recebe 409 (não 500)', async () => {
+    const body = { workshopName: 'Oficina X', name: 'Pessoa X', email: 'mesmo@email.test', password: 'senha-forte-1' };
+    const results = await Promise.all([anon().post('/api/auth/signup').send(body), anon().post('/api/auth/signup').send(body)]);
+    expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+    expect(results.find((r) => r.status === 409)!.body.error.code).toBe('email_in_use');
+  });
+
+  it('o responsável cadastrando o mesmo e-mail duas vezes ao mesmo tempo: 201 e 409', async () => {
+    const body = { name: 'Lia', email: 'lia@bancada.demo', password: 'senha-inicial-1' };
+    const results = await Promise.all([ctx.agent.post('/api/team').send(body), ctx.agent.post('/api/team').send(body)]);
+    expect(results.map((r) => r.status).sort()).toEqual([201, 409]);
+  });
+});

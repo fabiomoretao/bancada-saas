@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BILLING_CYCLES, PLAN_IDS } from './plans';
 import { CUSTOMER_DECISIONS, WORKSHOP_ACTIONS } from './status';
 
 /** Texto opcional: espaços são removidos e string vazia vira `undefined`. */
@@ -188,6 +189,14 @@ export const signupSchema = z.object({
   name: requiredText(120, 'Informe seu nome.'),
   email: loginEmail,
   password: newPassword,
+  plan: z.enum(PLAN_IDS, { error: 'Escolha um plano.' }).default('solo'),
+  billingCycle: z.enum(BILLING_CYCLES, { error: 'Escolha mensal ou anual.' }).default('monthly'),
+});
+
+/** Troca de plano feita pelo responsável. */
+export const changePlanSchema = z.object({
+  plan: z.enum(PLAN_IDS, { error: 'Escolha um plano.' }),
+  billingCycle: z.enum(BILLING_CYCLES, { error: 'Escolha mensal ou anual.' }),
 });
 
 export const loginSchema = z.object({
@@ -219,5 +228,6 @@ export type LoginInput = z.input<typeof loginSchema>;
 export type CreateUserInput = z.input<typeof createUserSchema>;
 export type UpdateUserInput = z.input<typeof updateUserSchema>;
 export type ChangePasswordInput = z.input<typeof changePasswordSchema>;
+export type ChangePlanInput = z.input<typeof changePlanSchema>;
 
 export const listInstrumentsQuerySchema = z.object({ query: optionalText(100) });

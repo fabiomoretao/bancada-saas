@@ -17,6 +17,7 @@ import { LoginPage, SignupPage } from './pages/AuthPages';
 import { InstrumentsPage } from './pages/InstrumentsPage';
 import { NotFoundPage } from './pages/PlaceholderPage';
 import { TeamPage } from './pages/TeamPage';
+import { PlansPage } from './pages/PlansPage';
 import { PublicOrderPage } from './pages/PublicOrderPage';
 import { QueuePage } from './pages/QueuePage';
 
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
   },
   { path: 'entrar', element: <LoginPage /> },
   { path: 'criar-conta', element: <SignupPage /> },
+  { path: 'planos', element: <PlansPage /> },
   // Link privado do cliente: fora do shell da oficina, sem conta
   { path: 'o/:token', element: <PublicOrderPage /> },
   { path: '*', element: <NotFoundPage /> },

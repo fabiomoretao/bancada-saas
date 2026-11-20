@@ -1,6 +1,6 @@
 # Decisões técnicas — Bancada
 
-Registro curto do que foi decidido, por quê e o que ainda está em aberto. Atualizado em 18/11/2026.
+Registro curto do que foi decidido, por quê e o que ainda está em aberto. Atualizado em 20/11/2026.
 
 ## Decididas
 
@@ -22,6 +22,9 @@ Registro curto do que foi decidido, por quê e o que ainda está em aberto. Atua
 | Autenticação | Conta por oficina: criar conta gera a oficina e o responsável; responsável cadastra técnicos com senha inicial. Senha com scrypt; sessão em cookie httpOnly/SameSite=Lax com token aleatório (hash no banco), 7 dias; checagem de Origin contra CSRF; limite de 10 tentativas de login em 15 min | Isolamento real entre oficinas (SaaS) sem dependências extras |
 | Papéis | Responsável (gerencia equipe) e Técnico (operação). E-mail de login único no sistema; a oficina sempre mantém um responsável ativo | Simples e suficiente para oficinas pequenas |
 | Autor dos eventos | Cada evento da OS guarda o usuário que fez a ação; aparece só no histórico interno | Auditoria (“quem fez o quê”) sem expor a equipe ao cliente |
+| Planos | **Solo** R$ 39,90/mês ou R$ 399/ano, 1 acesso; **Equipe** R$ 69,90/mês ou R$ 699/ano, até 3 acessos. Mesmas funções nos dois. Valores em `packages/shared/src/plans.ts` | Definido em 20/11. A única diferença é o número de logins, fácil de explicar e de aplicar |
+| Limite de acessos | Conta só usuários ativos. A API recusa (409 `plan_limit`) cadastrar ou reativar além do plano, e descer de plano quando há mais acessos ativos que o novo limite. Oficinas antigas com mais de um acesso migram para o Equipe | O limite vale mesmo se alguém chamar a API direto, sem o front |
+| Cobrança | Não há pagamento: o plano escolhido é registrado e a troca vale na hora. As telas avisam que é um projeto acadêmico | Fora do escopo da disciplina; um gateway de pagamento entraria depois |
 | Paleta | **A · Nogueira** (madeira escura e âmbar), aprovada em 18/11 | Contraste verificado; âmbar só decorativo |
 | Estilo | CSS Modules + variáveis CSS em `tokens.css` | Sem dependência extra; a paleta muda em um único arquivo |
 | Validação | Zod no front (React Hook Form) e de novo na API | O servidor nunca confia no front |
@@ -30,12 +33,15 @@ Registro curto do que foi decidido, por quê e o que ainda está em aberto. Atua
 ## Em aberto
 
 1. Recuperação de senha esquecida: ainda não existe (a pessoa só troca a senha estando logada).
-2. **Repositório GitHub:** falta criar e dar acesso ao professor. Integrantes: Fábio José Moretão de Souza e Guilherme Olimpio Rodrigues.
-3. **PostgreSQL:** caminho preparado, ainda não testado.
+2. **Cobrança real** dos planos (gateway de pagamento, período de teste, inadimplência): fora do MVP.
+3. **Repositório GitHub:** falta criar e dar acesso ao professor. Integrantes: Fábio José Moretão de Souza e Guilherme Olimpio Rodrigues.
+4. **PostgreSQL:** caminho preparado, ainda não testado.
 
 ## Próximas etapas (sequência da especificação)
 
 1. Entrega escolar: PDF, apresentação e publicação no GitHub.
+
+Concluído em 20/11: revisão de todos os fluxos (ponta a ponta no navegador), planos Solo e Equipe com página /planos, escolha no cadastro, troca em Equipe e limite de acessos na API. Correções da revisão: confirmações nativas do navegador trocadas pelo diálogo do sistema (link novo, descartar rascunho, desativar acesso); "Visível para o cliente" volta a desmarcado depois de cada nota; cadastro simultâneo com o mesmo e-mail responde 409 em vez de erro 500; lista da equipe sem rolagem lateral no celular.
 
 Concluído em 18/11 (noite): contas da oficina com login e equipe, tela de Instrumentos, paleta Nogueira, cadastro de clientes, busca na abertura da OS e aviso de duplicidade.
 

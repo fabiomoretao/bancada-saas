@@ -18,12 +18,14 @@ Pequenas oficinas recebem instrumentos, avaliam defeitos, orçam serviços e pe�
 
 ## Modelo de negócio
 
-Assinatura mensal paga pela oficina; o cliente final não paga nada nem cria conta.
+Assinatura paga pela oficina; o cliente final não paga nada nem cria conta. Os dois planos têm todas as funções; muda só o número de acessos (logins).
 
-- **Plano Solo:** uma oficina com equipe pequena, com limite de ordens ativas.
-- **Plano Equipe:** cobrança por usuário, com mais volume de ordens e recursos de histórico e relatórios.
+| Plano | Mensal | Anual | Acessos |
+|---|---|---|---|
+| **Solo** | R$ 39,90/mês | R$ 399/ano (equivale a R$ 33,25/mês) | 1 |
+| **Equipe** | R$ 69,90/mês | R$ 699/ano (equivale a R$ 58,25/mês) | até 3 |
 
-Preços e limites ainda precisam ser validados com oficinas. O MVP não tem cobrança.
+No anual, a oficina paga 10 mensalidades e usa 12 (2 meses grátis). A página pública **/planos** compara os planos; a oficina escolhe o plano ao criar a conta e troca depois em **Equipe**. A API aplica o limite de acessos: não deixa cadastrar nem reativar pessoas além do plano, e só permite descer do Equipe para o Solo quando sobra 1 acesso ativo.
 
 > Projeto acadêmico (FATEC — TG). Cada oficina cria a própria conta; funcionários entram com e-mail e senha e só veem os dados da sua oficina.
 
@@ -44,9 +46,11 @@ Abra **http://localhost:5173** e entre com uma conta de demonstração (senha `b
 | `dono@bancada.demo` | Responsável: tudo, inclusive a equipe |
 | `tecnico@bancada.demo` | Técnico: fila, orçamentos, clientes e instrumentos |
 
-Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia.
+Ou clique em **Criar conta da oficina** para começar uma oficina nova, vazia, escolhendo o plano. Os planos ficam em **http://localhost:5173/planos**.
 
-**Atualizando de uma versão anterior:** rode `npm run db:reset` uma vez. Ele recria o banco com as tabelas de contas e as contas de demonstração.
+A oficina de demonstração está no plano **Equipe** (2 de 3 acessos em uso).
+
+**Atualizando de uma versão anterior:** as migrações rodam sozinhas ao subir a API (`npm run dev`). Se o banco for de antes das contas de login, rode `npm run db:reset` uma vez para recriá-lo com as contas de demonstração.
 
 O comando `setup` também imprime os links privados de cada OS de exemplo.
 
@@ -84,12 +88,14 @@ bancada-saas/
 │  ├─ status.ts        máquina de estados da OS (única fonte das transições)
 │  ├─ schemas.ts       validações Zod usadas no front e na API
 │  ├─ money.ts         valores em centavos e formatação BRL
+│  ├─ plans.ts         planos Solo e Equipe: preços e limite de acessos
 │  └─ types.ts         contratos de resposta da API
 ├─ apps/api/src/
 │  ├─ modules/
 │  │  ├─ work-orders/      routes → service → repository (+ mapper)
 │  │  ├─ auth/             criar conta, entrar, sair, sessão
 │  │  ├─ team/             equipe e papéis
+│  │  ├─ workshop/         plano da oficina e limite de acessos
 │  │  ├─ customers/        cadastro, busca e aviso de duplicidade
 │  │  ├─ instruments/      consulta e histórico
 │  │  ├─ estimates/        rascunho e publicação de versões
@@ -100,8 +106,8 @@ bancada-saas/
 │  ├─ app.ts           monta a aplicação (usado também pelos testes)
 │  └─ server.ts
 ├─ apps/web/src/
-│  ├─ pages/           Entrar, Criar conta, Fila + detalhe, Nova ordem, Orçamento,
-│  │                   Clientes, Instrumentos, Equipe, Link do cliente
+│  ├─ pages/           Planos, Entrar, Criar conta, Fila + detalhe, Nova ordem, Orçamento,
+│  │                   Clientes, Instrumentos, Equipe (com plano), Link do cliente
 │  ├─ components/      status, linha do tempo, orçamento, toasts…
 │  ├─ layout/          shell da oficina (navegação lateral)
 │  ├─ api/             cliente HTTP e hooks do TanStack Query
@@ -117,10 +123,11 @@ Monólito modular em camadas: as rotas só validam e respondem; os serviços apl
 
 | Método e rota | Uso |
 |---|---|
-| `POST /api/auth/signup` | Criar conta: nova oficina + responsável, já entra |
+| `POST /api/auth/signup` | Criar conta: nova oficina + responsável, com `plan` (`solo`/`team`) e `billingCycle` (`monthly`/`yearly`); já entra |
 | `POST /api/auth/login` · `POST /api/auth/logout` | Entrar e sair (cookie de sessão httpOnly) |
 | `GET /api/auth/me` · `POST /api/auth/password` | Sessão atual · trocar a própria senha |
-| `GET /api/team` · `POST /api/team` · `PATCH /api/team/:id` | Equipe: listar; responsável cadastra, muda função e desativa |
+| `GET /api/team` · `POST /api/team` · `PATCH /api/team/:id` | Equipe: listar; responsável cadastra, muda função e desativa (409 `plan_limit` acima do limite do plano) |
+| `GET /api/workshop/plan` · `PUT /api/workshop/plan` | Plano da oficina e acessos em uso; só o responsável troca |
 | `GET /api/instruments?query=` · `GET /api/instruments/:id` | Buscar instrumentos; dono e histórico de reparos |
 | `GET /api/work-orders?query=&status=` | Buscar e filtrar ordens da oficina |
 | `POST /api/work-orders` | Criar OS com cliente existente (`mode: "existing"`) ou novo (`mode: "new"`, exige telefone **ou** e-mail) e instrumento existente ou novo; gera o link privado |
@@ -149,11 +156,12 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 - **Login:** a mesma mensagem para e-mail inexistente e senha errada, e bloqueio após 10 tentativas em 15 minutos.
 - **CSRF:** alterações só são aceitas vindas do próprio front (checagem do cabeçalho `Origin`), além do `SameSite`.
 - **Isolamento entre oficinas:** o middleware `requireAuth` define a oficina da sessão; serviços e repositórios filtram toda consulta por ela. Há testes que tentam ler e alterar dados de outra oficina.
-- **Papéis:** responsável e técnico. Só o responsável gerencia a equipe, e a oficina sempre mantém pelo menos um responsável ativo.
+- **Papéis:** responsável e técnico. Só o responsável gerencia a equipe e o plano, e a oficina sempre mantém pelo menos um responsável ativo.
+- **Limite do plano:** verificado na API, dentro da mesma transação que cria ou reativa o acesso. Esconder o botão no front é só conveniência.
 
 ## Testes
 
-`npm test` roda 92 testes: máquina de estados, validações, dinheiro e a API com banco em memória, incluindo o fluxo completo da entrada à entrega e o cadastro de clientes. Eles cobrem os critérios de aceite 1 a 15 da especificação: contato alternativo, campos obrigatórios, busca e filtro, link correto e sem dados privados, aprovação, revisão com nova versão, recusa, bloqueio de reparo sem aprovação, idempotência da decisão e isolamento entre oficinas. Também cobrem a busca de clientes, o aviso de duplicidade, a abertura de OS com cliente e instrumento já cadastrados, login, sessões, equipe, papéis e instrumentos.
+`npm test` roda 109 testes: máquina de estados, validações, dinheiro e a API com banco em memória, incluindo o fluxo completo da entrada à entrega e o cadastro de clientes. Eles cobrem os critérios de aceite 1 a 15 da especificação: contato alternativo, campos obrigatórios, busca e filtro, link correto e sem dados privados, aprovação, revisão com nova versão, recusa, bloqueio de reparo sem aprovação, idempotência da decisão e isolamento entre oficinas. Também cobrem a busca de clientes, o aviso de duplicidade, a abertura de OS com cliente e instrumento já cadastrados, login, sessões, equipe, papéis e instrumentos, além dos planos: valores, plano escolhido no cadastro, limite de 1 e 3 acessos, troca de plano, permissão só do responsável e a migração das oficinas que já existiam.
 
 ## Fluxo para demonstrar
 
@@ -166,6 +174,7 @@ Todas as rotas, menos `/api/auth/signup`, `/api/auth/login` e `/api/public/*`, e
 6. No link: **Aprovar orçamento**.
 7. Na oficina: **Concluir reparo** (com orientação de retirada) → **Registrar entrega**.
 8. O link do cliente mostra cada etapa. As notas internas não aparecem.
+9. **Planos:** em **Equipe**, veja "Plano Equipe · 2 de 3 acessos". Adicione uma pessoa: o botão trava em 3 de 3. Em **Mudar plano**, o Solo aparece indisponível até sobrar 1 acesso. Saia e abra **/planos** → **Começar com o Solo** para criar uma oficina com 1 acesso.
 
 ## PostgreSQL (futuro)
 
