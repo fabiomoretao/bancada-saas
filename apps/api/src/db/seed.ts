@@ -1,8 +1,9 @@
 import type { EstimateItemType, EstimateStatus, WorkOrderStatus } from '@bancada/shared';
-import { lineTotalCents, totalCents } from '@bancada/shared';
+import { lineTotalCents, normalizeEmail, normalizePhone, totalCents } from '@bancada/shared';
 import type { DB } from './client';
 import { formatOrderCode, newId } from '../lib/ids';
 import { encryptToken, generateToken, hashToken } from '../lib/tokens';
+import { hashPassword } from '../lib/passwords';
 
 /**
  * Dados de demonstração: uma oficina fictícia com ordens em todos os estados.
@@ -10,6 +11,13 @@ import { encryptToken, generateToken, hashToken } from '../lib/tokens';
  */
 
 export const DEMO_WORKSHOP = { id: 'demo-workshop', name: 'Bancada do Centro' };
+
+/** Contas de demonstração (senha só para uso local). */
+export const DEMO_PASSWORD = 'bancada123';
+export const DEMO_USERS = [
+  { name: 'Ana Prado', email: 'dono@bancada.demo', role: 'owner' as const },
+  { name: 'Téo Martins', email: 'tecnico@bancada.demo', role: 'staff' as const },
+];
 
 interface SeedEstimate {
   status: EstimateStatus;
@@ -197,7 +205,7 @@ const ORDERS: SeedOrder[] = [
     ],
   },
   {
-    customer: { name: 'Sofia Mendes', phone: '(11) 93333-6605' },
+    customer: { name: 'Caio Martins', phone: '(11) 97777-2201' },
     instrument: { type: 'Cavaquinho', brand: 'Rozini' },
     problemReport: 'Troca de cordas e limpeza.',
     status: 'delivered',
@@ -225,6 +233,8 @@ const ORDERS: SeedOrder[] = [
 
 export interface SeedOptions {
   workshop?: { id: string; name: string };
+  users?: Array<{ name: string; email: string; role: 'owner' | 'staff' }>;
+  password?: string;
   /** Primeiro número de OS (a demonstração começa em OS-0240). */
   firstOrderNumber?: number;
   orders?: SeedOrder[];
@@ -232,11 +242,14 @@ export interface SeedOptions {
 
 export async function seedDemo(db: DB, tokenKey: string, options: SeedOptions = {}) {
   const workshop = options.workshop ?? DEMO_WORKSHOP;
+  const users = options.users ?? DEMO_USERS;
+  const passwordHash = await hashPassword(options.password ?? DEMO_PASSWORD);
   const orders = options.orders ?? ORDERS;
   const firstNumber = options.firstOrderNumber ?? 240;
   const now = Date.now();
   const at = (daysAgo: number, minutes = 0) => new Date(now - daysAgo * 86_400_000 + minutes * 60_000).toISOString();
   const links: Record<string, string> = {};
+  const customers = new Map<string, string>();
 
   await db.transaction().execute(async (trx) => {
     await trx
@@ -244,23 +257,50 @@ export async function seedDemo(db: DB, tokenKey: string, options: SeedOptions = 
       .values({ id: workshop.id, name: workshop.name, nextOrderNumber: firstNumber + orders.length, createdAt: at(30) })
       .execute();
 
+    for (const user of users) {
+      await trx
+        .insertInto('users')
+        .values({
+          id: newId(),
+          workshopId: workshop.id,
+          name: user.name,
+          email: user.email,
+          passwordHash,
+          role: user.role,
+          createdAt: at(30),
+          updatedAt: at(30),
+          disabledAt: null,
+        })
+        .execute();
+    }
+
     for (const [index, order] of orders.entries()) {
       const created = at(order.receivedDaysAgo);
       const code = formatOrderCode(firstNumber + index);
       const ids = { customer: newId(), instrument: newId(), order: newId() };
 
-      await trx
-        .insertInto('customers')
-        .values({
-          id: ids.customer,
-          workshopId: workshop.id,
-          name: order.customer.name,
-          phone: order.customer.phone ?? null,
-          email: order.customer.email ?? null,
-          createdAt: created,
-          updatedAt: created,
-        })
-        .execute();
+      // O mesmo cliente (nome + contato) pode ter várias ordens e instrumentos.
+      const customerKey = `${order.customer.name}|${order.customer.phone ?? ''}|${order.customer.email ?? ''}`;
+      const existingCustomer = customers.get(customerKey);
+      if (existingCustomer) {
+        ids.customer = existingCustomer;
+      } else {
+        customers.set(customerKey, ids.customer);
+        await trx
+          .insertInto('customers')
+          .values({
+            id: ids.customer,
+            workshopId: workshop.id,
+            name: order.customer.name,
+            phone: order.customer.phone ?? null,
+            email: order.customer.email ?? null,
+            phoneDigits: normalizePhone(order.customer.phone),
+            emailNormalized: normalizeEmail(order.customer.email),
+            createdAt: created,
+            updatedAt: created,
+          })
+          .execute();
+      }
 
       await trx
         .insertInto('instruments')

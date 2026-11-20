@@ -33,6 +33,9 @@ export interface CustomerTable {
   name: string;
   phone: string | null;
   email: string | null;
+  /** Telefone só com dígitos e e-mail em minúsculas: usados para buscar e detectar duplicidade (não são únicos). */
+  phoneDigits: string | null;
+  emailNormalized: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,7 +106,33 @@ export interface WorkOrderEventTable {
   visibility: EventVisibility;
   /** Chave opcional para evitar eventos duplicados quando a mesma ação é reenviada. */
   idempotencyKey: string | null;
+  /** Usuário da oficina que fez a ação (nulo para cliente ou sistema). */
+  actorUserId?: string | null;
   createdAt: string;
+}
+
+export interface UserTable {
+  id: string;
+  workshopId: string;
+  name: string;
+  /** Sempre em minúsculas. Único no sistema. */
+  email: string;
+  /** scrypt: "scrypt$N$r$p$salt$hash" (nunca a senha). */
+  passwordHash: string;
+  role: 'owner' | 'staff';
+  createdAt: string;
+  updatedAt: string;
+  disabledAt: string | null;
+}
+
+export interface SessionTable {
+  id: string;
+  userId: string;
+  /** SHA-256 do token do cookie; o token em si nunca é guardado. */
+  tokenHash: string;
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt: string | null;
 }
 
 export interface PublicAccessTokenTable {
@@ -126,6 +155,8 @@ export interface Database {
   estimateItems: EstimateItemTable;
   workOrderEvents: WorkOrderEventTable;
   publicAccessTokens: PublicAccessTokenTable;
+  users: UserTable;
+  sessions: SessionTable;
 }
 
 export type WorkOrderRow = Selectable<WorkOrderTable>;

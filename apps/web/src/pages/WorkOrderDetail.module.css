@@ -138,6 +138,10 @@
   color: var(--color-muted);
   padding-top: 2px;
 }
+.eventWhen small {
+  display: block;
+  font-size: var(--text-xs);
+}
 .internal {
   display: inline-block;
   margin-left: 6px;
@@ -186,5 +190,5 @@
 .check input {
   width: 18px;
   height: 18px;
-  accent-color: var(--color-ink);
+  accent-color: var(--color-primary);
 }

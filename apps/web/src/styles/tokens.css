@@ -1,42 +1,52 @@
 /*
- * Design tokens do Bancada.
+ * Design tokens do Bancada — paleta A, "Nogueira" (aprovada em 18/11/2026).
+ * Madeira escura e âmbar, lembrando a bancada de luthieria.
  *
- * PALETA PROVISÓRIA E NEUTRA: a paleta de cores ainda NÃO foi aprovada.
- * Estes tons de cinza só existem para a interface funcionar. Quando a paleta
- * for escolhida, troque os valores abaixo; nenhum componente usa cor fixa.
+ * Contraste verificado no branco: texto 17:1, texto secundário 6,3:1,
+ * ação principal 9:1, cores de status ≥ 5,4:1. O âmbar (--color-accent)
+ * é decorativo (logo, detalhes): nunca é usado em texto.
+ * Nenhum componente usa cor fixa; tudo vem daqui.
  */
 :root {
   color-scheme: light;
 
   /* Superfícies */
-  --color-page: #f4f4f4;
+  --color-page: #f6f2ec;
   --color-surface: #ffffff;
-  --color-surface-soft: #f7f7f6;
-  --color-surface-active: #ececeb;
+  --color-surface-soft: #f3ede5;
+  --color-surface-active: #ede3d6;
 
   /* Texto */
-  --color-ink: #171717;
-  --color-muted: #5f5f5f;
-  --color-quiet: #767676;
+  --color-ink: #221a15;
+  --color-muted: #6b5e55;
+  --color-quiet: #776960;
   --color-on-primary: #ffffff;
 
   /* Linhas */
-  --color-line: #dedede;
-  --color-line-strong: #c8c8c8;
+  --color-line: #e5dbd0;
+  --color-line-strong: #cdbfb1;
 
-  /* Ação principal (provisória) */
-  --color-primary: #202020;
-  --color-primary-hover: #3a3a3a;
+  /* Ação principal: nogueira */
+  --color-primary: #6b3e26;
+  --color-primary-hover: #57311d;
 
-  /* Estados — provisórios, também neutros; o texto sempre acompanha a cor */
-  --color-danger: #9d3333;
-  --color-danger-soft: #f7eaea;
-  --color-success: #2f5d3a;
-  --color-focus: #6b6b6b;
+  /* Destaque decorativo: âmbar */
+  --color-accent: #c8873a;
 
-  /* Marcador de status (bolinha). Cada status ganhará cor própria com a paleta. */
-  --status-dot-default: #8a8a8a;
-  --status-dot-current: #171717;
+  /* Estados (o texto sempre acompanha a cor) */
+  --color-danger: #a3362b;
+  --color-danger-soft: #f8e9e6;
+  --color-success: #2f6b45;
+  --color-focus: #6b3e26;
+
+  /* Status da OS */
+  --status-neutral: #6b5e55;   /* Recebido, Em avaliação */
+  --status-attention: #9a5b12; /* Aguardando aprovação, Revisão solicitada */
+  --status-progress: #3d5a80;  /* Aguardando peça, Em reparo */
+  --status-ready: #2f6b45;     /* Pronto para retirada */
+  --status-danger: #a3362b;    /* Recusada/encerrada */
+  --status-dot-default: #6b5e55;
+  --status-dot-current: #6b3e26;
 
   /* Tipografia */
   --font-ui: 'Inter Variable', 'Inter', system-ui, sans-serif;
@@ -50,7 +60,7 @@
   --text-2xl: 1.625rem; /* 26px */
   --text-3xl: 2rem;     /* 32px */
 
-  /* Espaçamento e forma (mais espaço e cantos mais arredondados, como aprovado) */
+  /* Espaçamento e forma */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -70,7 +80,7 @@
   --sidebar-width: 248px;
   --logo-size: 64px;
 
-  --shadow-dialog: 0 20px 70px rgb(0 0 0 / 0.14);
+  --shadow-dialog: 0 20px 70px rgb(34 26 21 / 0.18);
 }
 
 @media (max-width: 820px) {

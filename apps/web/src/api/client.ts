@@ -1,4 +1,4 @@
-import type { ApiErrorDTO } from '@bancada/shared';
+import type { ApiErrorDTO, CustomerMatchDTO } from '@bancada/shared';
 
 /** Erro vindo da API, com mensagens por campo quando for validação. */
 export class ApiError extends Error {
@@ -7,6 +7,7 @@ export class ApiError extends Error {
     public readonly code: string,
     message: string,
     public readonly fields: Record<string, string> = {},
+    public readonly duplicates: CustomerMatchDTO[] = [],
   ) {
     super(message);
     this.name = 'ApiError';
@@ -18,6 +19,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(`/api${path}`, {
       ...init,
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', ...init.headers },
     });
   } catch {
@@ -31,8 +33,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       body?.error.code ?? 'http_error',
       body?.error.message ?? `Erro ${response.status}.`,
       body?.error.fields,
+      body?.error.duplicates,
     );
   }
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 

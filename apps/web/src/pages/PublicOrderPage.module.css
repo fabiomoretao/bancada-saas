@@ -15,7 +15,6 @@
 .logo {
   width: 52px;
   height: 52px;
-  filter: grayscale(1);
 }
 .tag {
   margin-left: auto;
@@ -86,7 +85,7 @@
   background: var(--status-dot-current);
   box-shadow:
     0 0 0 3px var(--color-page),
-    0 0 0 4.5px var(--status-dot-default);
+    0 0 0 4.5px var(--color-accent);
 }
 .timeline small {
   display: block;

@@ -2,7 +2,6 @@ import { sql, type Insertable, type Transaction } from 'kysely';
 import type { WorkOrderStatus } from '@bancada/shared';
 import type { DB } from '../../db/client';
 import type {
-  CustomerTable,
   Database,
   InstrumentTable,
   NewWorkOrderEvent,
@@ -100,9 +99,14 @@ export async function listEstimates(db: Executor, workOrderId: string) {
 }
 
 export async function listEvents(db: Executor, workOrderId: string, onlyCustomerVisible = false) {
-  let q = db.selectFrom('workOrderEvents').selectAll().where('workOrderId', '=', workOrderId);
-  if (onlyCustomerVisible) q = q.where('visibility', '=', 'customer');
-  return q.orderBy('createdAt', 'asc').orderBy('id', 'asc').execute();
+  let q = db
+    .selectFrom('workOrderEvents as e')
+    .leftJoin('users as u', 'u.id', 'e.actorUserId')
+    .selectAll('e')
+    .select('u.name as actorName')
+    .where('e.workOrderId', '=', workOrderId);
+  if (onlyCustomerVisible) q = q.where('e.visibility', '=', 'customer');
+  return q.orderBy('e.createdAt', 'asc').orderBy('e.id', 'asc').execute();
 }
 
 export async function findActiveToken(db: Executor, workOrderId: string) {
@@ -126,9 +130,6 @@ export async function reserveOrderNumber(trx: Transaction<Database>, workshopId:
   if (!row) throw new Error(`Oficina ${workshopId} não encontrada.`);
   return row.nextOrderNumber - 1;
 }
-
-export const insertCustomer = (db: Executor, row: Insertable<CustomerTable>) =>
-  db.insertInto('customers').values(row).execute();
 
 export const insertInstrument = (db: Executor, row: Insertable<InstrumentTable>) =>
   db.insertInto('instruments').values(row).execute();

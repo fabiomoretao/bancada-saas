@@ -3,6 +3,7 @@ import { saveEstimateDraftSchema } from '@bancada/shared';
 import { z } from 'zod';
 import { parseOrThrow } from '../../middleware/validate';
 import { getWorkshopId } from '../../middleware/workshop-context';
+import { getUserId } from '../../middleware/auth';
 import type { WorkOrdersService } from '../work-orders/work-orders.service';
 import type { EstimatesService } from './estimates.service';
 
@@ -32,7 +33,7 @@ export function estimatesRouter(estimates: EstimatesService, workOrders: WorkOrd
     const workshopId = getWorkshopId(res);
     const params = req.params as { id: string; version: string };
     const version = parseOrThrow(versionParam, params.version);
-    await estimates.publish(workshopId, params.id, version);
+    await estimates.publish(workshopId, params.id, version, getUserId(res));
     res.json(await workOrders.getDetail(workshopId, params.id));
   });
 

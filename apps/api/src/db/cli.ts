@@ -8,7 +8,7 @@
 import { loadConfig } from '../config';
 import { createDb } from './client';
 import { createMigrator, migrateToLatest } from './migrator';
-import { DEMO_WORKSHOP, seedDemo } from './seed';
+import { DEMO_PASSWORD, DEMO_USERS, DEMO_WORKSHOP, seedDemo } from './seed';
 
 const command = process.argv[2];
 const config = loadConfig();
@@ -22,6 +22,9 @@ async function seed() {
   }
   const { links } = await seedDemo(db, config.TOKEN_ENCRYPTION_KEY);
   console.log(`Demonstração criada: ${Object.keys(links).length} ordens.`);
+  console.log('Contas para entrar (senha: ' + DEMO_PASSWORD + '):');
+  for (const u of DEMO_USERS) console.log(`  ${u.email}  (${u.role === 'owner' ? 'responsável' : 'técnico'})`);
+  console.log('Links privados de cada OS:');
   for (const [code, path] of Object.entries(links)) console.log(`  ${code}  ${config.WEB_ORIGIN}${path}`);
 }
 

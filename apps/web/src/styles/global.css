@@ -30,6 +30,11 @@ button {
   cursor: pointer;
 }
 
+a {
+  color: var(--color-ink);
+  text-underline-offset: 3px;
+}
+
 h1,
 h2,
 h3 {
@@ -104,6 +109,7 @@ h3 {
 /* ---------- Campos ---------- */
 .field {
   display: grid;
+  align-content: start;
   gap: 6px;
   min-width: 0;
 }

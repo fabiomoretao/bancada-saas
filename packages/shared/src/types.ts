@@ -39,6 +39,8 @@ export interface WorkOrderEventDTO {
   message: string | null;
   visibility: EventVisibility;
   createdAt: string;
+  /** Quem registrou, quando foi alguém da oficina (só na visão da oficina). */
+  actorName?: string | null;
 }
 
 export interface InstrumentDTO {
@@ -114,10 +116,81 @@ export interface PublicWorkOrderDTO {
   canDecide: boolean;
 }
 
+export interface CustomerMatchDTO {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  /** Qual dado coincidiu com o informado. */
+  matchedOn: Array<'phone' | 'email'>;
+}
+
+export interface CustomerSummaryDTO extends CustomerDTO {
+  instrumentCount: number;
+  orderCount: number;
+  lastOrderAt: string | null;
+}
+
+export interface CustomerListDTO {
+  items: CustomerSummaryDTO[];
+  total: number;
+}
+
+export interface CustomerInstrumentDTO extends InstrumentDTO {
+  orderCount: number;
+  lastOrderAt: string | null;
+}
+
+export interface CustomerDetailDTO extends CustomerDTO {
+  createdAt: string;
+  updatedAt: string;
+  instruments: CustomerInstrumentDTO[];
+  /** Ordens do cliente, mais recentes primeiro. */
+  orders: Array<WorkOrderSummaryDTO & { instrumentId: string }>;
+}
+
 export interface ApiErrorDTO {
   error: {
     code: string;
     message: string;
     fields?: Record<string, string>;
+    /** Em `possible_duplicate`: cadastros com o mesmo telefone ou e-mail. */
+    duplicates?: CustomerMatchDTO[];
   };
+}
+
+// ---------------- Contas e equipe ----------------
+
+export interface SessionDTO {
+  user: { id: string; name: string; email: string; role: 'owner' | 'staff' };
+  workshop: { id: string; name: string };
+}
+
+export interface TeamMemberDTO {
+  id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'staff';
+  active: boolean;
+  createdAt: string;
+}
+
+// ---------------- Instrumentos ----------------
+
+export interface InstrumentSummaryDTO extends InstrumentDTO {
+  customer: { id: string; name: string };
+  orderCount: number;
+  lastOrderAt: string | null;
+  lastStatus: WorkOrderStatus | null;
+}
+
+export interface InstrumentListDTO {
+  items: InstrumentSummaryDTO[];
+  total: number;
+}
+
+export interface InstrumentDetailDTO extends InstrumentDTO {
+  createdAt: string;
+  customer: CustomerDTO;
+  orders: WorkOrderSummaryDTO[];
 }

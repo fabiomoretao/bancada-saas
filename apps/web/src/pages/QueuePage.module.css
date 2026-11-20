@@ -124,7 +124,7 @@
 }
 .row[aria-current='true'] {
   background: var(--color-surface-soft);
-  box-shadow: inset 3px 0 var(--color-ink);
+  box-shadow: inset 3px 0 var(--color-primary);
 }
 .rowMain {
   display: grid;

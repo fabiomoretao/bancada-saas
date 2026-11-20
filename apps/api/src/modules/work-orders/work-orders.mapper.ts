@@ -26,7 +26,7 @@ export function toEstimateDTO(row: EstimateWithItems): EstimateDTO {
   };
 }
 
-export function toEventDTO(row: WorkOrderEventRow): WorkOrderEventDTO {
+export function toEventDTO(row: WorkOrderEventRow & { actorName?: string | null }): WorkOrderEventDTO {
   return {
     id: row.id,
     actorType: row.actorType,
@@ -36,6 +36,7 @@ export function toEventDTO(row: WorkOrderEventRow): WorkOrderEventDTO {
     message: row.message,
     visibility: row.visibility,
     createdAt: row.createdAt,
+    actorName: row.actorName ?? null,
   };
 }
 

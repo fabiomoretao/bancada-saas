@@ -105,7 +105,7 @@ export function createEstimatesService({ db }: { db: DB }) {
     });
   }
 
-  async function publish(workshopId: string, orderId: string, versionNumber: number): Promise<void> {
+  async function publish(workshopId: string, orderId: string, versionNumber: number, userId?: string): Promise<void> {
     const order = await loadOrder(workshopId, orderId);
 
     await db.transaction().execute(async (trx) => {
@@ -147,6 +147,7 @@ export function createEstimatesService({ db }: { db: DB }) {
         order,
         to: result.to,
         actor: 'workshop',
+        actorUserId: userId,
         eventType: 'estimate_published',
         message: scopeChange
           ? `Mudança no serviço: orçamento ${versionLabel(versionNumber)} publicado. O trabalho alterado aguarda sua aprovação.`

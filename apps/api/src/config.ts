@@ -14,7 +14,7 @@ const envSchema = z.object({
   TOKEN_ENCRYPTION_KEY: z
     .string()
     .regex(/^[0-9a-fA-F]{64}$/, 'TOKEN_ENCRYPTION_KEY precisa ter 64 caracteres hexadecimais. Rode `npm run setup`.'),
-  DEMO_WORKSHOP_ID: z.string().min(1).default('demo-workshop'),
+  SESSION_DAYS: z.coerce.number().int().min(1).max(90).default(7),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

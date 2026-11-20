@@ -23,7 +23,7 @@
 .notice {
   margin: 0 0 var(--space-4);
   padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--color-ink);
+  border-left: 3px solid var(--status-attention);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--color-surface);
   font-size: var(--text-sm);
@@ -115,7 +115,7 @@
 .check input {
   width: 18px;
   height: 18px;
-  accent-color: var(--color-ink);
+  accent-color: var(--color-primary);
 }
 
 .total {

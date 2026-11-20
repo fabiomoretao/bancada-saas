@@ -1,6 +1,7 @@
 import { MagnifyingGlassIcon, PlusIcon } from '@phosphor-icons/react';
 import { STATUS_LABELS, WORK_ORDER_STATUSES } from '@bancada/shared';
 import { useEffect, useState } from 'react';
+import { useDebounced } from '../lib/useDebounced';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useWorkOrders } from '../api/hooks';
 import { StateMessage } from '../components/StateMessage';
@@ -8,15 +9,6 @@ import { StatusBadge } from '../components/StatusBadge';
 import { instrumentTitle, relativeDay } from '../lib/format';
 import { WorkOrderDetail } from './WorkOrderDetail';
 import styles from './QueuePage.module.css';
-
-function useDebounced<T>(value: T, delay = 250): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
 
 /** Fila técnica: lista pesquisável à esquerda, detalhe da OS selecionada ao lado. */
 export function QueuePage() {

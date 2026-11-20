@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { createWorkOrderSchema, customerDecisionSchema } from './schemas';
+import { createWorkOrderSchema, customerDecisionSchema, customerSchema, normalizeEmail, normalizePhone } from './schemas';
 import { formatCents, toCents, totalCents } from './money';
 
 const base = {
-  customer: { name: 'Alex Ribeiro', phone: '', email: '' },
-  instrument: { type: 'Baixo', brand: 'Aurora', model: 'JB', serialNumber: '' },
+  customer: { mode: 'new' as const, name: 'Alex Ribeiro', phone: '', email: '' },
+  instrument: { mode: 'new' as const, type: 'Baixo', brand: 'Aurora', model: 'JB', serialNumber: '' },
   intake: { problemReport: 'Jack com contato instável', intakeCondition: '', accessories: '' },
 };
 
@@ -27,7 +27,7 @@ describe('criação de OS', () => {
 
   it('bloqueia nome, tipo ou relato vazios (critério 4)', () => {
     const cases = [
-      { ...withContact('11988881234', ''), customer: { name: '  ', phone: '11988881234', email: '' } },
+      { ...withContact('11988881234', ''), customer: { mode: 'new' as const, name: '  ', phone: '11988881234', email: '' } },
       { ...withContact('11988881234', ''), instrument: { ...base.instrument, type: '' } },
       { ...withContact('11988881234', ''), intake: { ...base.intake, problemReport: '' } },
     ];
@@ -36,12 +36,40 @@ describe('criação de OS', () => {
 
   it('normaliza campos opcionais vazios para undefined', () => {
     const result = createWorkOrderSchema.parse(withContact('11988881234', ''));
-    expect(result.customer.email).toBeUndefined();
-    expect(result.instrument.serialNumber).toBeUndefined();
+    expect(result.customer.mode === 'new' && result.customer.email).toBeUndefined();
+    expect(result.instrument.mode === 'new' && result.instrument.serialNumber).toBeUndefined();
   });
 
   it('rejeita e-mail malformado', () => {
     expect(createWorkOrderSchema.safeParse(withContact('', 'alex@')).success).toBe(false);
+  });
+});
+
+describe('cliente existente na abertura da OS', () => {
+  it('aceita cliente e instrumento já cadastrados, sem exigir contato', () => {
+    const input = { ...base, customer: { mode: 'existing', id: 'c1' }, instrument: { mode: 'existing', id: 'i1' } };
+    expect(createWorkOrderSchema.safeParse(input).success).toBe(true);
+  });
+
+  it('cliente existente com instrumento novo exige o tipo', () => {
+    const input = { ...base, customer: { mode: 'existing', id: 'c1' }, instrument: { mode: 'new', type: '' } };
+    expect(createWorkOrderSchema.safeParse(input).success).toBe(false);
+  });
+
+  it('cadastro de cliente também exige telefone ou e-mail', () => {
+    const r = customerSchema.safeParse({ name: 'Ana', phone: '', email: '' });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.path).toEqual(['contact']);
+    expect(customerSchema.parse({ name: 'Ana', email: 'ANA@x.com' }).allowDuplicate).toBe(false);
+  });
+});
+
+describe('normalização de contato', () => {
+  it('compara telefones só pelos dígitos, com ou sem +55', () => {
+    expect(normalizePhone('(11) 98888-1234')).toBe('11988881234');
+    expect(normalizePhone('+55 11 98888-1234')).toBe('11988881234');
+    expect(normalizePhone('123')).toBeNull();
+    expect(normalizeEmail('  Ana@Exemplo.COM ')).toBe('ana@exemplo.com');
   });
 });
 

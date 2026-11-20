@@ -10,7 +10,7 @@ await migrateToLatest(db);
 const app = createApp({ db, config });
 const server = app.listen(config.PORT, () => {
   console.log(`API do Bancada em http://localhost:${config.PORT}`);
-  console.log('Modo demonstração: sem login, oficina fixa. Não use assim em produção.');
+  console.log('Entre com a conta de demonstração (dono@bancada.demo / bancada123) ou crie uma conta nova.');
 });
 
 async function shutdown() {

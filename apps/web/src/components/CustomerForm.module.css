@@ -1,0 +1,39 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+.contact {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.contact legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.pair :global(.field-label) {
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+  .actions > * {
+    flex: 1;
+  }
+}

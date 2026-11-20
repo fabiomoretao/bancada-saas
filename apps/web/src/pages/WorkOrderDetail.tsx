@@ -158,7 +158,10 @@ function DetailContent({ order, justCreated }: { order: WorkOrderDetailDTO; just
         <ol>
           {[...order.events].reverse().map((event) => (
             <li key={event.id}>
-              <span className={styles.eventWhen}>{formatDateTime(event.createdAt)}</span>
+              <span className={styles.eventWhen}>
+                {formatDateTime(event.createdAt)}
+                {event.actorName && <small>{event.actorName}</small>}
+              </span>
               <span>
                 {event.toStatus && event.fromStatus !== event.toStatus ? <strong>{STATUS_LABELS[event.toStatus]}. </strong> : null}
                 {event.message}

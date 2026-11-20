@@ -14,7 +14,7 @@ export const notFoundHandler: RequestHandler = (_req, res) => {
  */
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
-    const body: ApiErrorDTO = { error: { code: err.code, message: err.message, fields: err.fields } };
+    const body: ApiErrorDTO = { error: { code: err.code, message: err.message, fields: err.fields, duplicates: err.duplicates } };
     res.status(err.status).json(body);
     return;
   }

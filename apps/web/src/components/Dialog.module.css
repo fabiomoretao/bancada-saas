@@ -8,7 +8,7 @@
   box-shadow: var(--shadow-dialog);
 }
 .dialog::backdrop {
-  background: rgb(0 0 0 / 0.35);
+  background: rgb(34 26 21 / 0.4);
 }
 
 .title {

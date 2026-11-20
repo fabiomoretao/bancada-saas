@@ -16,23 +16,27 @@ Registro curto do que foi decidido, por quê e o que ainda está em aberto. Atua
 | Decisão do cliente | Só vale para a versão publicada mais recente; repetir a mesma decisão não cria evento novo; responder a uma versão substituída retorna 409 | Critérios da seção 5.3 |
 | Status de orçamento | `draft`, `published`, `approved`, `revision_requested`, `rejected`, `superseded` | Acrescentado `revision_requested` para distinguir pedido de revisão de recusa |
 | Link privado | Token de 256 bits; hash SHA-256 para busca e cópia cifrada AES-256-GCM | A especificação pede hash, e a oficina precisa copiar o link de novo. O token nunca fica em texto puro |
-| Cliente na abertura da OS | Cada OS cria um cliente novo | Simples no MVP. Reaproveitar um cliente existente entra com a tela de Clientes |
-| Autenticação | Modo demonstração: middleware fixa a oficina `demo-workshop` | Aprovado para a demo local; **não é seguro para produção** |
+| Cadastro de clientes | A OS aponta para um cadastro: buscado e selecionado na abertura, ou criado na hora. O instrumento pode ser um já cadastrado para aquele cliente | Histórico por cliente e por instrumento; menos retrabalho no balcão |
+| Duplicidade | Telefone e e-mail **não** são únicos. Contato repetido (só dígitos no telefone, sem +55; e-mail em minúsculas) gera aviso com os cadastros parecidos; a oficina usa o existente ou confirma que é outra pessoa (`allowDuplicate`). A API também confere no envio | Contatos podem ser compartilhados (família, empresa) ou mudar |
+| Privacidade do cliente | Rotas `/api/customers` só existem na área da oficina e filtram por oficina; o link público continua sem nome, contato ou outros instrumentos | Dados do cliente restritos à oficina |
+| Autenticação | Conta por oficina: criar conta gera a oficina e o responsável; responsável cadastra técnicos com senha inicial. Senha com scrypt; sessão em cookie httpOnly/SameSite=Lax com token aleatório (hash no banco), 7 dias; checagem de Origin contra CSRF; limite de 10 tentativas de login em 15 min | Isolamento real entre oficinas (SaaS) sem dependências extras |
+| Papéis | Responsável (gerencia equipe) e Técnico (operação). E-mail de login único no sistema; a oficina sempre mantém um responsável ativo | Simples e suficiente para oficinas pequenas |
+| Autor dos eventos | Cada evento da OS guarda o usuário que fez a ação; aparece só no histórico interno | Auditoria (“quem fez o quê”) sem expor a equipe ao cliente |
+| Paleta | **A · Nogueira** (madeira escura e âmbar), aprovada em 18/11 | Contraste verificado; âmbar só decorativo |
 | Estilo | CSS Modules + variáveis CSS em `tokens.css` | Sem dependência extra; a paleta muda em um único arquivo |
 | Validação | Zod no front (React Hook Form) e de novo na API | O servidor nunca confia no front |
 | Acessibilidade | Rótulos visíveis, erros ligados por `aria-describedby`, status sempre com texto, fonte mínima de 12 px, foco visível | Requisitos da seção 12 da especificação |
 
 ## Em aberto
 
-1. **Paleta de cores:** a interface usa tons neutros provisórios. Nenhuma cor foi aprovada.
-2. **Autenticação real** e isolamento por usuário.
-3. **Repositório GitHub:** falta criar e dar acesso ao professor. Integrantes: Fábio José Moretão de Souza e Guilherme Olimpio Rodrigues.
-4. **PostgreSQL:** caminho preparado, ainda não testado.
+1. Recuperação de senha esquecida: ainda não existe (a pessoa só troca a senha estando logada).
+2. **Repositório GitHub:** falta criar e dar acesso ao professor. Integrantes: Fábio José Moretão de Souza e Guilherme Olimpio Rodrigues.
+3. **PostgreSQL:** caminho preparado, ainda não testado.
 
 ## Próximas etapas (sequência da especificação)
 
-1. Paleta de cores (aprovação do usuário).
-2. Telas de Clientes e Instrumentos.
-3. Entrega escolar: PDF, apresentação e publicação no GitHub.
+1. Entrega escolar: PDF, apresentação e publicação no GitHub.
+
+Concluído em 18/11 (noite): contas da oficina com login e equipe, tela de Instrumentos, paleta Nogueira, cadastro de clientes, busca na abertura da OS e aviso de duplicidade.
 
 Concluído em 18/11: diagnóstico, orçamento versionado e publicação; decisão do cliente pelo link (com idempotência); transições de andamento (peça, reparo, pronto, entrega); notas internas e atualizações públicas.

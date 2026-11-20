@@ -8,6 +8,8 @@ export interface StatusChange {
   order: Pick<WorkOrderRow, 'id' | 'status'>;
   to: WorkOrderStatus;
   actor: ActorType;
+  /** Usuário da oficina que fez a mudança (quando o ator é a oficina). */
+  actorUserId?: string;
   eventType: string;
   message: string;
   visibility?: EventVisibility;
@@ -52,6 +54,7 @@ export async function applyStatusChange(trx: Transaction<Database>, change: Stat
       message: change.message,
       visibility: change.visibility ?? 'customer',
       idempotencyKey: null,
+      actorUserId: change.actorUserId ?? null,
       createdAt: change.now,
     })
     .execute();

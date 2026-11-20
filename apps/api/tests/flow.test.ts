@@ -12,11 +12,11 @@ let token: string;
 
 beforeEach(async () => {
   ctx = await setupTestApp();
-  const res = await request(ctx.app)
+  const res = await ctx.agent
     .post('/api/work-orders')
     .send({
-      customer: { name: 'Cliente Fluxo', phone: '(11) 90000-1111', email: '' },
-      instrument: { type: 'Guitarra', brand: 'Marca', model: 'X', serialNumber: '' },
+      customer: { mode: 'new', name: 'Cliente Fluxo', phone: '(11) 90000-1111', email: '' },
+      instrument: { mode: 'new', type: 'Guitarra', brand: 'Marca', model: 'X', serialNumber: '' },
       intake: { problemReport: 'Trastejando', intakeCondition: '', accessories: '' },
     });
   const body = res.body as CreateWorkOrderResponseDTO;
@@ -27,7 +27,7 @@ afterEach(async () => {
   await ctx.db.destroy();
 });
 
-const api = () => request(ctx.app);
+const api = () => ctx.agent;
 const transition = (action: string, extra: object = {}) =>
   api().post(`/api/work-orders/${id}/transitions`).send({ action, ...extra });
 const saveDraft = (overrides: object = {}) =>
