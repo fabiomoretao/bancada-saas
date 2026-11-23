@@ -14,7 +14,7 @@ type UpdateUserData = z.output<typeof updateUserSchema>;
  * Equipe da oficina. O responsável cadastra funcionários (com uma senha
  * inicial que a pessoa troca depois), muda a função e desativa acessos.
  * A oficina sempre mantém pelo menos um responsável ativo, e o número de
- * acessos ativos nunca passa do limite do plano (Solo 1, Equipe 3).
+ * acessos ativos nunca passa do limite do plano (Solo 1, Equipe 5).
  */
 export function createTeamService({ db }: { db: DB }) {
   async function list(workshopId: string): Promise<TeamMemberDTO[]> {

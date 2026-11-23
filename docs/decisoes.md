@@ -30,11 +30,11 @@ Decisões técnicas do projeto, com o motivo de cada uma, e o que ainda está em
 | Paleta | **Nogueira** (madeira escura e âmbar) | Contraste verificado; âmbar só decorativo |
 | Estilo | CSS Modules + variáveis CSS em `tokens.css` | Sem dependência extra; a paleta muda em um único arquivo |
 | Validação | Zod no front (React Hook Form) e de novo na API | O servidor nunca confia no front |
+| Repositório | Público em https://github.com/fabiomoretao/bancada-saas | O professor acessa sem convite; nenhuma senha ou chave fica no código |
 | Acessibilidade | Rótulos visíveis, erros ligados por `aria-describedby`, status sempre com texto, fonte mínima de 12 px, foco visível | Requisitos da seção 12 da especificação |
 
 ## Em aberto
 
 1. Recuperação de senha esquecida: ainda não existe (a pessoa só troca a senha estando logada).
 2. **Cobrança real** dos planos (gateway de pagamento, período de teste, inadimplência): fora do MVP.
-3. **Acesso ao repositório:** o repositório é privado; o professor precisa estar como colaborador.
-4. **PostgreSQL:** caminho preparado, ainda não testado.
+3. **PostgreSQL:** caminho preparado, ainda não testado.
